@@ -1,0 +1,12 @@
+node_modules
+dist
+test-results
+tsconfig.tsbuildinfo
+# maxfiy sozlamalar (bot tokeni) — hech qachon repositoryga emas
+.env
+.env.*
+!.env.example
+server/.dev.vars
+server/.wrangler
+.wrangler
+.DS_Store

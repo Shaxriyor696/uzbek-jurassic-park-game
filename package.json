@@ -1,0 +1,39 @@
+{
+  "name": "boyota",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Uzbek Jurassic Park — O'zbekiston muhitidagi 3D shahar qurish va boshqarish o'yini (brauzerda)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:e2e": "node scripts/e2e.mjs",
+    "test:aholi": "node scripts/e2e-aholi.mjs",
+    "typecheck": "tsc --noEmit -p .",
+    "test:biznes": "node scripts/e2e-biznes.mjs",
+    "test:talim": "node scripts/e2e-talim.mjs",
+    "test:shifoxona": "node scripts/e2e-shifoxona.mjs",
+    "test:boshqaruv": "node scripts/e2e-boshqaruv.mjs",
+    "test:dino": "node scripts/e2e-dino.mjs",
+    "test:qurilish": "node scripts/e2e-qurilish.mjs",
+    "test:toglar": "node scripts/e2e-toglar.mjs",
+    "test:dinozavrlar": "node scripts/e2e-dinozavrlar.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "playwright-core": "^1.56.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}

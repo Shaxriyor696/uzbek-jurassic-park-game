@@ -1,0 +1,13 @@
+{
+  "dino_growl": "/audio/dinosaurs/dino_growl.mp3",
+  "dino_hiss": "/audio/dinosaurs/dino_hiss.mp3",
+  "dino_footsteps": "/audio/dinosaurs/dino_footsteps.mp3",
+  "city_ambience": "/audio/ambience/city_ambience.mp3",
+  "traffic": "/audio/ambience/traffic.mp3",
+  "car_start": "/audio/vehicles/car_start.mp3",
+  "bus_depart": "/audio/vehicles/bus_depart.mp3",
+  "bus_doors": "/audio/vehicles/bus_doors.mp3",
+  "gate": "/audio/security/gate.mp3",
+  "fountain": "/audio/water/fountain.mp3",
+  "construction": "/audio/construction/construction.mp3"
+}

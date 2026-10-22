@@ -1,0 +1,16 @@
+BoyOta - shahar, transport va dinozavr ovozlari
+11 MP3 listening/preview copies from Freesound. These are not the original lossless WAV/AIFF files.
+License: CC0 1.0, https://creativecommons.org/publicdomain/zero/1.0/
+For final production download the original source files when needed. These files have not been auditioned or mixed for the game.
+
+dino_growl.mp3 | 3.5s | Alessandrobraz | https://freesound.org/s/727775/
+dino_hiss.mp3 | 5.8s | 999999990 | https://freesound.org/s/320345/
+dino_footsteps.mp3 | 22.3s | AudioPapkin | https://freesound.org/s/712066/
+city_ambience.mp3 | 120.6s | simgo | https://freesound.org/s/380687/
+traffic.mp3 | 207.9s | bruno.auzet | https://freesound.org/s/553879/
+car_start.mp3 | 10.5s | prometheus888 | https://freesound.org/s/458461/
+bus_depart.mp3 | 15.9s | pnwheeler | https://freesound.org/s/831721/
+bus_doors.mp3 | 116.0s | Jedo | https://freesound.org/s/396811/
+gate.mp3 | 28.8s | ThabzMalik | https://freesound.org/s/767060/
+fountain.mp3 | 30.0s | MiLeuthner | https://freesound.org/s/399027/
+construction.mp3 | 2.6s | deraj | https://freesound.org/s/202231/

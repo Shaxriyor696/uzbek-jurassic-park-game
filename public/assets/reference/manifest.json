@@ -1,0 +1,569 @@
+[
+  {
+    "id": "G001",
+    "title": "BoyOta - asosiy qurilish ekrani",
+    "path": "assets/G001.png",
+    "source": "exec-42bf1198-8ce9-4a62-9bc7-db19918a4cbd.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G002",
+    "title": "BoyOta - Dastyor va yo‘l qurish",
+    "path": "assets/G002.png",
+    "source": "exec-f32549ab-c0a0-45fe-b667-f446bbaf6874.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G003",
+    "title": "Dastyor - milliy chopon, yakuniy obraz",
+    "path": "assets/G003.png",
+    "source": "exec-eabb48d0-7af5-44a3-8cc8-28c5d88b8dc3.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G004",
+    "title": "Nest One - to‘rt rakurs",
+    "path": "assets/G004.png",
+    "source": "exec-770e7a0a-fea4-45a1-8512-d1dbc1f98811.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G005",
+    "title": "Hilton - to‘rt rakurs",
+    "path": "assets/G005.png",
+    "source": "exec-cb76ff45-18a5-41d6-864b-cdeb9f275a56.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G006",
+    "title": "Kongress markazi - to‘rt rakurs",
+    "path": "assets/G006.png",
+    "source": "exec-4c68345b-f2e5-4cd5-84c1-78e9a4d14e9b.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G007",
+    "title": "Tashkent City Mall - to‘rt rakurs",
+    "path": "assets/G007.png",
+    "source": "exec-755be9ad-8c2f-40e4-80c7-1fb925948ef7.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G008",
+    "title": "12 landshaft va shahar obyektlari to‘plami",
+    "path": "assets/G008.png",
+    "source": "exec-0a5a05fa-ab8c-4e67-be94-70f7a796bd35.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G009",
+    "title": "Aylanma chorraha",
+    "path": "assets/G009.png",
+    "source": "exec-a91b36bc-0c4b-451d-a880-bc20cbc57b1b.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G010",
+    "title": "Bog",
+    "path": "assets/G010.png",
+    "source": "exec-936f56e7-7062-45f4-95f3-a19e7d3a0f6c.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G011",
+    "title": "Bogcha",
+    "path": "assets/G011.png",
+    "source": "exec-5f0ad0f8-81cf-4a48-9b3b-11cd28cb22b6.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G012",
+    "title": "Chiqindi saralash",
+    "path": "assets/G012.png",
+    "source": "exec-4cd1afea-903f-437a-95be-f9b361e29701.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G013",
+    "title": "Chorraha",
+    "path": "assets/G013.png",
+    "source": "exec-6392caee-ede1-4426-a5b8-ed0b0ab7aa2c.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G014",
+    "title": "Daraxtzor",
+    "path": "assets/G014.png",
+    "source": "exec-5976cba3-c1e6-40db-a318-d2b26427184c.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G015",
+    "title": "Dastlabki bino konseptlari (arxiv)",
+    "path": "assets/G015.png",
+    "source": "exec-691dae6c-a2fd-4738-88d9-29041713cbf9.png",
+    "status": "arxiv"
+  },
+  {
+    "id": "G016",
+    "title": "Dastlabki shaharcha rakurslari (arxiv)",
+    "path": "assets/G016.png",
+    "source": "exec-faf59130-3e07-4200-8ce1-36c47835d0c4.png",
+    "status": "arxiv"
+  },
+  {
+    "id": "G017",
+    "title": "Dastyor - choponsiz eski obraz (arxiv)",
+    "path": "assets/G017.png",
+    "source": "exec-ef36f53b-9a30-4985-9f53-9ece52fffb2d.png",
+    "status": "arxiv"
+  },
+  {
+    "id": "G018",
+    "title": "Egri yol",
+    "path": "assets/G018.png",
+    "source": "exec-f7a225bf-4b2c-4a06-9d42-6c78087e49aa.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G019",
+    "title": "Estakada",
+    "path": "assets/G019.png",
+    "source": "exec-4016682b-e335-4028-8c61-af25df0de2f3.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G020",
+    "title": "Kanal",
+    "path": "assets/G020.png",
+    "source": "exec-5f00f847-447b-4ad4-95a1-d4f75572a2c5.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G021",
+    "title": "Kol",
+    "path": "assets/G021.png",
+    "source": "exec-c55e4628-f3e1-4d8e-9105-d2cca952bb9f.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G022",
+    "title": "Koprik",
+    "path": "assets/G022.png",
+    "source": "exec-c59b5a40-141d-4f80-9853-c8e40eb19203.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G023",
+    "title": "MYcity - boshlang‘ich mahalla (eski nom)",
+    "path": "assets/G023.png",
+    "source": "exec-40725927-22bb-48d7-bbd2-0fabd01a6f90.png",
+    "status": "arxiv"
+  },
+  {
+    "id": "G024",
+    "title": "MYcity - dastlabki umumiy ekran (eski nom)",
+    "path": "assets/G024.png",
+    "source": "exec-9fe3c82c-c8a8-4066-a0d6-c07f0c7a26ed.png",
+    "status": "arxiv"
+  },
+  {
+    "id": "G025",
+    "title": "MYcity - rivojlangan shahar (eski nom)",
+    "path": "assets/G025.png",
+    "source": "exec-0ec8c08e-df54-4ff4-816a-81e15444a574.png",
+    "status": "arxiv"
+  },
+  {
+    "id": "G026",
+    "title": "MYcity - tungi shahar (eski nom)",
+    "path": "assets/G026.png",
+    "source": "exec-a6efb711-1abf-4cdc-96a2-eddde609ff9e.png",
+    "status": "arxiv"
+  },
+  {
+    "id": "G027",
+    "title": "Maktab",
+    "path": "assets/G027.png",
+    "source": "exec-691b8795-fc13-488c-ae0f-3c9ca2099eb3.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G028",
+    "title": "Metro kirish",
+    "path": "assets/G028.png",
+    "source": "exec-7945660c-a275-4889-89ff-cf7a1eacf1d6.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G029",
+    "title": "Olti qatorli yol",
+    "path": "assets/G029.png",
+    "source": "exec-5233bf51-fa6d-4606-b484-598d1ac7e020.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G030",
+    "title": "Ot ochirish",
+    "path": "assets/G030.png",
+    "source": "exec-8e885c36-f7de-45c2-816b-d9995b3479a9.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G031",
+    "title": "Politsiya",
+    "path": "assets/G031.png",
+    "source": "exec-86e81dde-5c4d-454b-acbe-c5097275445c.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G032",
+    "title": "Qo‘shimcha qurilish belgilar to‘plami",
+    "path": "assets/G032.png",
+    "source": "exec-46f9e033-fb4d-407c-8df3-d7d288b4e20a.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G033",
+    "title": "Qurilish kategoriyalari toolbar",
+    "path": "assets/G033.png",
+    "source": "exec-6a1bd945-f4c8-4381-bde4-8223676a1974.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G034",
+    "title": "Shifoxona",
+    "path": "assets/G034.png",
+    "source": "exec-3637fc12-ca16-4252-a6d3-260de05e16db.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G035",
+    "title": "Sport maydoni",
+    "path": "assets/G035.png",
+    "source": "exec-29f3d6e6-bdd5-4e82-b407-893247236a4a.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G036",
+    "title": "Supermarket",
+    "path": "assets/G036.png",
+    "source": "exec-edbcd680-22b1-4088-a854-b24026900d3d.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G037",
+    "title": "Suv stansiyasi",
+    "path": "assets/G037.png",
+    "source": "exec-6e8ed259-bc44-400e-91cf-d5efbd755a51.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G038",
+    "title": "T chorraha",
+    "path": "assets/G038.png",
+    "source": "exec-274c775b-37f0-42d5-8bf3-384d93a7411c.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G039",
+    "title": "Togri yol",
+    "path": "assets/G039.png",
+    "source": "exec-e9007d2d-9333-440c-9116-a664fc38ef33.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G040",
+    "title": "Tor kocha",
+    "path": "assets/G040.png",
+    "source": "exec-4c9b8811-71a5-40f7-926a-677af156447d.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G041",
+    "title": "Tort qatorli yol",
+    "path": "assets/G041.png",
+    "source": "exec-dfd1fbcf-760a-4e34-8fd7-e953ce8c5595.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G042",
+    "title": "Tramvayli yol",
+    "path": "assets/G042.png",
+    "source": "exec-0bcb8fff-9621-4f66-afa1-0ab183aa6f2c.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G043",
+    "title": "Xizmat binolari menyusi",
+    "path": "assets/G043.png",
+    "source": "exec-8bc45c96-2ff2-4d29-a176-943889200cbb.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G044",
+    "title": "Yashil bulvar",
+    "path": "assets/G044.png",
+    "source": "exec-2e78ae35-e655-4e68-bf09-3b5a0a9c6d46.png",
+    "status": "namuna"
+  },
+  {
+    "id": "G045",
+    "title": "Yo‘l qurish menyusi",
+    "path": "assets/G045.png",
+    "source": "exec-60168917-c78c-4502-8c58-945b9a5e158c.png",
+    "status": "namuna"
+  },
+  {
+    "id": "P001",
+    "title": "Hilton 01",
+    "path": "assets/Toshkent_City_PNG/Hilton_01.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P002",
+    "title": "Hilton 02",
+    "path": "assets/Toshkent_City_PNG/Hilton_02.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P003",
+    "title": "Hilton 03",
+    "path": "assets/Toshkent_City_PNG/Hilton_03.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P004",
+    "title": "Hilton 04",
+    "path": "assets/Toshkent_City_PNG/Hilton_04.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P005",
+    "title": "Kongress markazi 01",
+    "path": "assets/Toshkent_City_PNG/Kongress_markazi_01.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P006",
+    "title": "Kongress markazi 02",
+    "path": "assets/Toshkent_City_PNG/Kongress_markazi_02.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P007",
+    "title": "Kongress markazi 03",
+    "path": "assets/Toshkent_City_PNG/Kongress_markazi_03.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P008",
+    "title": "Kongress markazi 04",
+    "path": "assets/Toshkent_City_PNG/Kongress_markazi_04.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P009",
+    "title": "Nest One 01",
+    "path": "assets/Toshkent_City_PNG/Nest_One_01.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P010",
+    "title": "Nest One 02",
+    "path": "assets/Toshkent_City_PNG/Nest_One_02.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P011",
+    "title": "Nest One 03",
+    "path": "assets/Toshkent_City_PNG/Nest_One_03.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P012",
+    "title": "Nest One 04",
+    "path": "assets/Toshkent_City_PNG/Nest_One_04.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P013",
+    "title": "Tashkent City Mall 01",
+    "path": "assets/Toshkent_City_PNG/Tashkent_City_Mall_01.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P014",
+    "title": "Tashkent City Mall 02",
+    "path": "assets/Toshkent_City_PNG/Tashkent_City_Mall_02.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P015",
+    "title": "Tashkent City Mall 03",
+    "path": "assets/Toshkent_City_PNG/Tashkent_City_Mall_03.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P016",
+    "title": "Tashkent City Mall 04",
+    "path": "assets/Toshkent_City_PNG/Tashkent_City_Mall_04.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P017",
+    "title": "Bogcha",
+    "path": "assets/Shaharcha_obyektlari/Bogcha.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P018",
+    "title": "Chiqindi saralash",
+    "path": "assets/Shaharcha_obyektlari/Chiqindi_saralash.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P019",
+    "title": "Maktab",
+    "path": "assets/Shaharcha_obyektlari/Maktab.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P020",
+    "title": "Metro kirish",
+    "path": "assets/Shaharcha_obyektlari/Metro_kirish.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P021",
+    "title": "Ot ochirish",
+    "path": "assets/Shaharcha_obyektlari/Ot_ochirish.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P022",
+    "title": "Politsiya",
+    "path": "assets/Shaharcha_obyektlari/Politsiya.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P023",
+    "title": "Shifoxona",
+    "path": "assets/Shaharcha_obyektlari/Shifoxona.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P024",
+    "title": "Sport maydoni",
+    "path": "assets/Shaharcha_obyektlari/Sport_maydoni.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P025",
+    "title": "Supermarket",
+    "path": "assets/Shaharcha_obyektlari/Supermarket.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P026",
+    "title": "Suv stansiyasi",
+    "path": "assets/Shaharcha_obyektlari/Suv_stansiyasi.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P027",
+    "title": "Bog",
+    "path": "assets/Shahar_qismlari/Bog.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P028",
+    "title": "Chorraha",
+    "path": "assets/Shahar_qismlari/Chorraha.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P029",
+    "title": "Daraxtzor",
+    "path": "assets/Shahar_qismlari/Daraxtzor.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P030",
+    "title": "Egri yol",
+    "path": "assets/Shahar_qismlari/Egri_yol.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P031",
+    "title": "Kanal",
+    "path": "assets/Shahar_qismlari/Kanal.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P032",
+    "title": "Kol",
+    "path": "assets/Shahar_qismlari/Kol.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P033",
+    "title": "Koprik",
+    "path": "assets/Shahar_qismlari/Koprik.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P034",
+    "title": "Togri yol",
+    "path": "assets/Shahar_qismlari/Togri_yol.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P035",
+    "title": "Aylanma chorraha",
+    "path": "assets/Yol_qurish_PNG/Aylanma_chorraha.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P036",
+    "title": "Estakada",
+    "path": "assets/Yol_qurish_PNG/Estakada.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P037",
+    "title": "Olti qatorli yol",
+    "path": "assets/Yol_qurish_PNG/Olti_qatorli_yol.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P038",
+    "title": "T chorraha",
+    "path": "assets/Yol_qurish_PNG/T_chorraha.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P039",
+    "title": "Tor kocha",
+    "path": "assets/Yol_qurish_PNG/Tor_kocha.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P040",
+    "title": "Tort qatorli yol",
+    "path": "assets/Yol_qurish_PNG/Tort_qatorli_yol.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P041",
+    "title": "Tramvayli yol",
+    "path": "assets/Yol_qurish_PNG/Tramvayli_yol.png",
+    "status": "alohida PNG"
+  },
+  {
+    "id": "P042",
+    "title": "Yashil bulvar",
+    "path": "assets/Yol_qurish_PNG/Yashil_bulvar.png",
+    "status": "alohida PNG"
+  }
+]

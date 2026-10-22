@@ -1,0 +1,93 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Dino inspect</title><style>body{margin:0;background:#cfe3ef}canvas{display:block}</style></head>
+<body><script type="module">
+// Faqat ishlab chiqish uchun vosita: GLB modellarni tekshirish (o‘lcham, old tomon, suyaklar, kliplar, kadrlar).
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(900, 520); renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#cfe3ef');
+scene.add(new THREE.HemisphereLight('#ffffff', '#88aa66', 2.2));
+const sun = new THREE.DirectionalLight('#ffffff', 2); sun.position.set(5, 10, 7); scene.add(sun);
+const cam = new THREE.PerspectiveCamera(35, 900 / 520, 0.01, 5000);
+const loader = new GLTFLoader();
+let cur = null, mixer = null;
+window.inspect = async (url) => {
+  const g = await loader.loadAsync(url);
+  if (cur) scene.remove(cur);
+  cur = g.scene; scene.add(cur);
+  cur.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(cur, true);
+  const bones = []; cur.traverse((o) => { if (o.isBone) bones.push(o.name); });
+  const meshes = []; cur.traverse((o) => { if (o.isMesh) meshes.push({ name: o.name, skinned: !!o.isSkinnedMesh, morph: o.morphTargetInfluences?.length ?? 0, verts: o.geometry.attributes.position.count, mat: o.material.name, map: !!o.material.map, mapSize: o.material.map?.image ? [o.material.map.image.width, o.material.map.image.height] : null }); });
+  mixer = new THREE.AnimationMixer(cur);
+  window.__g = g;
+  return { box: { min: box.min.toArray().map((v) => +v.toFixed(3)), max: box.max.toArray().map((v) => +v.toFixed(3)) }, bones, meshes, clips: g.animations.map((c) => [c.name, +c.duration.toFixed(2)]) };
+};
+window.frame = (clipName, t, view) => {
+  mixer.stopAllAction();
+  if (clipName) { const c = window.__g.animations.find((a) => a.name === clipName); const a = mixer.clipAction(c); a.play(); mixer.setTime(t); }
+  cur.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(cur, true);
+  const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  const r = Math.max(s.x, s.y, s.z) * 1.3;
+  const dirs = { side: [1, 0.15, 0], front: [0, 0.15, 1], top: [0.001, 1, 0], back: [0, 0.15, -1], side2: [-1, 0.15, 0], iso: [0.8, 0.5, 0.8] };
+  const d = dirs[view || 'side'];
+  cam.position.set(c.x + d[0] * r, c.y + d[1] * r, c.z + d[2] * r); cam.lookAt(c); cam.near = r / 100; cam.far = r * 10; cam.updateProjectionMatrix();
+  renderer.render(scene, cam);
+  return { min: box.min.toArray().map((v) => +v.toFixed(3)), max: box.max.toArray().map((v) => +v.toFixed(3)) };
+};
+// suyak dunyo pozitsiyalari klip bo‘ylab (oyoq qadami tahlili)
+window.boneTrack = (clipName, names, steps) => {
+  const c = window.__g.animations.find((a) => a.name === clipName);
+  mixer.stopAllAction(); const a = mixer.clipAction(c); a.play();
+  const out = {};
+  for (const n of names) out[n] = [];
+  for (let i = 0; i <= steps; i++) {
+    mixer.setTime((c.duration * i) / steps); cur.updateMatrixWorld(true);
+    for (const n of names) { const b = cur.getObjectByName(n); const p = b.getWorldPosition(new THREE.Vector3()); out[n].push([+p.x.toFixed(4), +p.y.toFixed(4), +p.z.toFixed(4)]); }
+  }
+  return { dur: c.duration, out };
+};
+// asosiy (uzunasiga) o‘q: XZ tekisligida PCA
+window.axis = () => {
+  let sx = 0, sz = 0, n = 0; const pts = [];
+  const v = new THREE.Vector3();
+  cur.updateMatrixWorld(true);
+  cur.traverse((o) => { if (!o.isMesh) return; const p = o.geometry.attributes.position; const step = Math.max(1, Math.floor(p.count / 4000)); for (let i = 0; i < p.count; i += step) { v.fromBufferAttribute(p, i); if (o.isSkinnedMesh) o.applyBoneTransform(i, v); v.applyMatrix4(o.matrixWorld); pts.push([v.x, v.y, v.z]); sx += v.x; sz += v.z; n++; } });
+  const mx = sx / n, mz = sz / n; let a = 0, b = 0, c = 0;
+  for (const [x, , z] of pts) { a += (x - mx) ** 2; b += (x - mx) * (z - mz); c += (z - mz) ** 2; }
+  const ang = 0.5 * Math.atan2(2 * b, a - c); // asosiy o‘q burchagi (x dan z ga)
+  const dx = Math.cos(ang), dz = Math.sin(ang);
+  // o‘q bo‘yicha proyeksiyalar: ikki uchidagi eng baland nuqta (bosh odatda dum uchidan baland)
+  let lo = Infinity, hi = -Infinity; for (const [x, , z] of pts) { const t = (x - mx) * dx + (z - mz) * dz; lo = Math.min(lo, t); hi = Math.max(hi, t); }
+  let yLo = -Infinity, yHi = -Infinity; for (const [x, y, z] of pts) { const t = (x - mx) * dx + (z - mz) * dz; if (t < lo + (hi - lo) * 0.12) yLo = Math.max(yLo, y); if (t > hi - (hi - lo) * 0.12) yHi = Math.max(yHi, y); }
+  return { ang, dx, dz, lo, hi, yLo, yHi, mx, mz };
+};
+window.frameDir = (clipName, t, dx, dz) => {
+  mixer.stopAllAction();
+  if (clipName) { const c = window.__g.animations.find((a) => a.name === clipName); const a = mixer.clipAction(c); a.play(); mixer.setTime(t); }
+  cur.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(cur, true);
+  const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  const r = Math.max(s.x, s.y, s.z) * 1.2;
+  // o‘qqa perpendikulyar yon ko‘rinish
+  cam.position.set(c.x - dz * r, c.y + 0.1 * r, c.z + dx * r); cam.lookAt(c); cam.near = r / 100; cam.far = r * 10; cam.updateProjectionMatrix();
+  renderer.render(scene, cam);
+  return { min: box.min.toArray().map((v) => +v.toFixed(3)), max: box.max.toArray().map((v) => +v.toFixed(3)), c: c.toArray().map((v) => +v.toFixed(3)) };
+};
+// jag‘ni model o‘qi atrofida burab, boshni yaqindan ko‘rsatish
+window.jaw = (name, ax, ang, headName, side) => {
+  const b = cur.getObjectByName(name);
+  if (!b.userData.rest) b.userData.rest = b.quaternion.clone();
+  cur.updateMatrixWorld(true);
+  const P = b.parent.getWorldQuaternion(new THREE.Quaternion());
+  const d = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(...ax).normalize(), ang);
+  b.quaternion.copy(P).invert().multiply(d).multiply(P).multiply(b.userData.rest);
+  cur.updateMatrixWorld(true);
+  const h = cur.getObjectByName(headName).getWorldPosition(new THREE.Vector3());
+  cam.position.set(h.x + side[0], h.y + side[1], h.z + side[2]); cam.lookAt(h); cam.near = 0.01; cam.far = 1000; cam.updateProjectionMatrix();
+  renderer.render(scene, cam);
+};
+window.ready = true;
+</script></body></html>

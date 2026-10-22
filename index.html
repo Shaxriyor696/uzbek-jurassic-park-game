@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Uzbek Jurassic Park</title>
+    <meta name="application-name" content="Uzbek Jurassic Park" />
+    <meta name="apple-mobile-web-app-title" content="Uzbek Jurassic Park" />
+    <meta name="description" content="Uzbek Jurassic Park — O‘zbekiston muhitidagi shahar qurish va boshqarish o‘yini: uylar, yo‘llar, biznes va xizmat binolarini quring, budjetni boshqaring, aholi ehtiyojlarini qondiring va shaharni atrofdagi dinozavrlardan himoya qiling." />
+    <meta property="og:title" content="Uzbek Jurassic Park" />
+    <meta property="og:description" content="O‘zbekiston muhitidagi shahar qurish o‘yini — shaharni dinozavrlardan himoya qiling." />
+    <meta property="og:image" content="/assets/brand/logo-768.png" />
+    <meta name="theme-color" content="#0f2a4d" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/brand/icon-192.png" />
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <style>
+      /* Yuklanish ekrani: o‘yin sahnasi tayyor bo‘lguncha (logo nisbati saqlanadi, fon — logoga qo‘shilmagan) */
+      #splash { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+        background: radial-gradient(ellipse at center, #24476e 0%, #0f2a4d 70%); transition: opacity 0.5s ease; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      #splash img { width: min(560px, 86vw); height: auto; max-height: 62vh; object-fit: contain; }
+      #splash p { margin: 0; color: #cfe9fb; font-size: 15px; font-weight: 700; letter-spacing: 0.3px; text-align: center; padding: 0 16px; }
+      #splash.hide { opacity: 0; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <div id="splash" aria-live="polite">
+      <img src="/assets/brand/logo-768.png" alt="Uzbek Jurassic Park" />
+      <p>Shahar yuklanmoqda…</p>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
