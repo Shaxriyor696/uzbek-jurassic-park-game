@@ -24,6 +24,9 @@
       #splash img { width: min(560px, 86vw); height: auto; max-height: 62vh; object-fit: contain; }
       #splash p { margin: 0; color: #cfe9fb; font-size: 15px; font-weight: 700; letter-spacing: 0.3px; text-align: center; padding: 0 16px; }
       #splash.hide { opacity: 0; pointer-events: none; }
+      /* Brauzer ovozni bloklaganda: shahar tayyor — bosish kutiladi (bo‘kirish shu bosishdan) */
+      #splash p.tap { animation: splash-tap 1.6s ease-in-out infinite; }
+      @keyframes splash-tap { 50% { opacity: 0.55; } }
     </style>
   </head>
   <body>

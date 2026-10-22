@@ -11,7 +11,8 @@
     "bus_doors": "audio/vehicles/bus_doors.mp3",
     "gate": "audio/security/gate.mp3",
     "fountain": "audio/water/fountain.mp3",
-    "construction": "audio/construction/construction.mp3"
+    "construction": "audio/construction/construction.mp3",
+    "dinosaur_intro_roar": "audio/dinosaurs/dinosaur_intro_roar.mp3"
   },
   "derived": {
     "city_ambience_loop": "audio/ambience/city_ambience_loop.m4a",

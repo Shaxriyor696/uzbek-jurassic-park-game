@@ -16,7 +16,8 @@ import { EDU_CONFIG, EDU_TASKS, EDUCATION, EDUCATION_BY_TYPE } from '../src/game
 import { HEALTH_CONFIG, HEALTH_TASK } from '../src/game/health';
 import { CIVIC, CIVIC_CONFIG } from '../src/game/civicDefs';
 import { DINO, DINO_SPECS, type DinoProfile } from '../src/game/dino';
-import { MOVE_IN_PER_TICK, OUTAGE_GRACE_TICKS } from '../src/game/simulation';
+import { MOVE_IN_PER_TICK, OUTAGE_GRACE_TICKS, START_MONEY } from '../src/game/simulation';
+import { initialTutorial } from '../src/game/tutorial';
 import { computeBudget } from '../src/game/budget';
 import { buildProgress, CONSTRUCTION, PHASES } from '../src/game/construction';
 import { createPresetObjects } from '../src/game/presets';
@@ -28,11 +29,36 @@ class MemStorage implements KeyValueStorage {
   removeItem(k: string) { this.m.delete(k); }
 }
 
+/** Boshlang‘ich mahalla bilan (test fixture) — haqiqiy birinchi ochilish bo‘sh shahar, pastdagi testga qarang */
 function newGame() {
   const s = new MemStorage();
   const g = Game.boot(s);
+  g.resetToNewCity();
   return { g, s };
 }
+
+describe('Yangi o‘yin', () => {
+  it('saqlash yo‘q — bo‘sh shahar: qurilgan obyekt yo‘q, aholi 0, boshlang‘ich pul; tabiat va dinozavr bor; Dastyor yo‘l topshirig‘idan', () => {
+    const g = Game.boot(new MemStorage());
+    const built = [...g.objects.values()].filter((o) => !['tree', 'daraxt', 'rock', 'tosh'].includes(o.type as string));
+    expect(built).toEqual([]);
+    expect(g.population).toBe(0);
+    expect(g.money).toBe(START_MONEY);
+    expect(g.tickCount).toBe(0);
+    expect(g.terrain).not.toBeNull();
+    expect(g.tutorial.step).toBe(initialTutorial().step);
+  });
+
+  it('saqlangan shahar bo‘lsa — u ochiladi (davom etish), bo‘sh shahar bilan almashtirilmaydi', () => {
+    const s = new MemStorage();
+    const g = Game.boot(s);
+    g.resetToNewCity();
+    g.saveNow();
+    const n = g.objects.size;
+    expect(n).toBeGreaterThan(0);
+    expect(Game.boot(s).objects.size).toBe(n);
+  });
+});
 
 /** Kirish tarmog‘idagi (13,16) dan o‘ngga yo‘l */
 function roadEast(g: Game, toX: number) {

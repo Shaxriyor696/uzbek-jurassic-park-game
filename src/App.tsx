@@ -1,4 +1,5 @@
 import { startAudio, stopAudio } from './audio';
+import { introAbort, introSceneReady } from './audio/intro';
 import { HALF } from './three/environment';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { BUSINESSES } from './game/businesses';
@@ -42,7 +43,7 @@ export function App() {
     } catch (e) {
       // WebGL yo‘q yoki xotira yetmadi — tushunarli xato va qayta urinish
       setFatal(String((e as Error)?.message ?? e));
-      document.getElementById('splash')?.remove();
+      introAbort();
       telegramReady();
       return;
     }
@@ -64,9 +65,8 @@ export function App() {
     const audio = startAudio(game);
     const audioHook = (dt: number) => audio.update(s.cam.state, HALF, dt);
     s.frameHooks.add(audioHook);
-    // yuklanish ekrani (index.html) — sahna tayyor, silliq yo‘qoladi
-    const splash = document.getElementById('splash');
-    if (splash) { requestAnimationFrame(() => splash.classList.add('hide')); setTimeout(() => splash.remove(), 700); }
+    // yuklanish ekrani (index.html) — sahna tayyor; intro bo‘kirishi/tanlovi holatiga qarab silliq yo‘qoladi
+    introSceneReady();
     // Testlar (Playwright) uchun faqat ?test=1 bo‘lsa — o‘yinchi UI siga hech narsa qo‘shmaydi.
     if (new URLSearchParams(location.search).has('test')) window.__BOYOTA__ = { game, scene: s, audio, catalog: CATALOG, businessTypes: BUSINESSES.map((b) => b.type), educationTypes: EDUCATION.map((e) => e.type) };
     // Faqat dev rejimida: ?pul=2000000 — shahar pulini o‘rnatadi, saqlaydi va parametrni manzildan olib tashlaydi.

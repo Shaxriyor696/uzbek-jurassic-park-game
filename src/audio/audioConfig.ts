@@ -38,6 +38,8 @@ export const SOUNDS = {
   // ---- dinozavrlar ----
   dinoStep: { files: [1, 2, 3, 4, 5, 6].map((i) => `${A}dinosaurs/dino_step_0${i}.m4a`), bus: 'effects', gain: 0.55, preload: true },
   dinoGrowl: { files: [A + 'dinosaurs/dino_growl_norm.m4a'], bus: 'effects', gain: 0.55 },
+  // yuklanish ekranidagi intro (global, xaritadagi dinozavrga bog‘liq emas). Asl yozuv past (−33 dBFS) — o‘rtacha balandlikka keltirilgan
+  introRoar: { files: [A + 'dinosaurs/dinosaur_intro_roar.mp3'], bus: 'ui', gain: 2.2 },
   dinoHiss: { files: [A + 'dinosaurs/dino_hiss_short.m4a'], bus: 'effects', gain: 0.45 },
   // ---- darvoza ----
   gateMotor: { files: [A + 'security/gate_motor.m4a'], bus: 'effects', gain: 0.4 },

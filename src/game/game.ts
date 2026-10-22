@@ -188,7 +188,8 @@ export class Game {
         }
       }
     } else {
-      g.resetToNewCity();
+      // Saqlangan shahar yo‘q — yangi o‘yin bo‘sh shahardan (tabiat, relyef va dinozavrlar bilan) boshlanadi
+      g.resetToNewCity(true);
       if (res.status === 'invalid') {
         g.autosaveBlocked = true;
         g.autosaveBlockReason = 'Avtosaqlash o‘chiq: saqlangan fayl buzilgan';
@@ -203,8 +204,8 @@ export class Game {
   }
 
   /**
-   * Yangi shahar. `empty` — o‘yinchi «Yangi shahar» bosganda: hech narsa qurilmagan (kirish ko‘prigi ham yo‘q —
-   * ko‘priklarni o‘yinchi o‘zi quradi). Birinchi ochilishda — boshlang‘ich mahalla bilan.
+   * Yangi shahar. `empty` — hech narsa qurilmagan (kirish ko‘prigi ham yo‘q — ko‘priklarni o‘yinchi o‘zi quradi):
+   * birinchi ochilish va «Yangi shahar». `empty = false` — boshlang‘ich mahalla (testlar va namunaviy holatlar uchun).
    */
   resetToNewCity(empty = false) {
     const preset = createPresetObjects();

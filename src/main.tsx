@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { prepareStorage } from './telegram/telegram';
 import './ui/styles.css';
+import { startIntro } from './audio/intro';
+
+// Yuklanish ekranidagi intro bo‘kirishi — o‘yin yuklanishini kutmaydi va bloklamaydi
+startIntro();
 
 // Telegram ichida: foydalanuvchi saqlash joyi va bulutdagi nusxa o'yin boshlanishidan oldin (tarmoqsiz ham davom etadi)
 void prepareStorage().catch(() => null).finally(() => {

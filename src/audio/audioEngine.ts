@@ -32,6 +32,8 @@ export class AudioEngine {
   private buses = {} as Record<Bus, GainNode>;
   /** Dunyo ovozlari (muhit + effektlar) — pauzada jim; interfeys alohida */
   private world!: GainNode;
+  /** Intro paytida dunyo ovozlari pasaytiriladi (bir-birini bosmasin) */
+  private duck!: GainNode;
   private cache = new Map<string, Promise<AudioBuffer | null>>();
   private buffers = new Map<string, AudioBuffer | null>();
   private voices = new Set<Voice>();
@@ -59,8 +61,10 @@ export class AudioEngine {
         const c = this.ctx;
         this.master = c.createGain();
         this.master.connect(c.destination);
+        this.duck = c.createGain();
+        this.duck.connect(this.master);
         this.world = c.createGain();
-        this.world.connect(this.master);
+        this.world.connect(this.duck);
         for (const b of ['ambience', 'effects', 'ui'] as Bus[]) {
           this.buses[b] = c.createGain();
           this.buses[b].connect(b === 'ui' ? this.master : this.world);
@@ -74,8 +78,11 @@ export class AudioEngine {
           void rest.reduce((p, f) => p.then(() => this.load(f)).then(() => undefined), Promise.resolve());
         }, 1200);
       }
-      if (this.ctx.state === 'suspended' && document.visibilityState === 'visible') void this.ctx.resume().catch(() => {});
-      for (const ev of ['pointerdown', 'keydown', 'touchstart'] as const) window.removeEventListener(ev, this.unlockBound, { capture: true });
+      const c = this.ctx;
+      const done = () => { if (c.state === 'running') for (const ev of ['pointerdown', 'keydown', 'touchstart'] as const) window.removeEventListener(ev, this.unlockBound, { capture: true }); };
+      // brauzer ruxsat bermasa (o‘yinchi hali bosmagan) kontekst «suspended» qoladi — kuzatuvchilar keyingi bosishgacha turadi
+      if (c.state === 'suspended' && document.visibilityState === 'visible') void c.resume().then(done, () => {});
+      else done();
     } catch { /* audio yo‘q — o‘yin ovozsiz ishlaydi */ }
   }
 
@@ -95,6 +102,12 @@ export class AudioEngine {
     if (on === this.worldOn || !this.ctx) { this.worldOn = on; return; }
     this.worldOn = on;
     this.world.gain.setTargetAtTime(on ? 1 : 0, this.ctx.currentTime, 0.08);
+  }
+
+  /** Dunyo ovozlarini vaqtincha pasaytirish (intro) */
+  setDuck(on: boolean) {
+    if (!this.ctx) return;
+    this.duck.gain.setTargetAtTime(on ? 0.15 : 1, this.ctx.currentTime, 0.15);
   }
 
   get worldActive() {
@@ -167,7 +180,7 @@ export class AudioEngine {
   /**
    * Qisqa ovoz. at — fazoviy joy (yo‘q bo‘lsa 2D). Ovozlar soni cheklangan: limitda past ustuvorlikdagisi chalinmaydi.
    */
-  play(id: SoundId, opts: { at?: { x: number; z: number }; gain?: number; rate?: number; variant?: number; offset?: number; duration?: number; loop?: boolean; priority?: number } = {}): Voice | null {
+  play(id: SoundId, opts: { at?: { x: number; z: number }; gain?: number; rate?: number; variant?: number; offset?: number; duration?: number; loop?: boolean; priority?: number; fadeIn?: number } = {}): Voice | null {
     if (!this.ready) return null;
     const def = SOUNDS[id];
     if (def.bus !== 'ui' && !this.worldOn) return null;
@@ -189,6 +202,8 @@ export class AudioEngine {
     const g = c.createGain();
     const base = def.gain * (opts.gain ?? 1);
     g.gain.value = base * sp.gain;
+    // yozuv boshidagi keskin «chirt» bo‘lmasin
+    if (opts.fadeIn) { g.gain.setValueAtTime(0, c.currentTime); g.gain.linearRampToValueAtTime(base * sp.gain, c.currentTime + opts.fadeIn); }
     let pan: StereoPannerNode | null = null;
     if (opts.at && c.createStereoPanner) { pan = c.createStereoPanner(); pan.pan.value = sp.pan; src.connect(g).connect(pan).connect(this.buses[def.bus]); }
     else src.connect(g).connect(this.buses[def.bus]);

@@ -9,10 +9,16 @@ import { AudioEngine } from './audioEngine';
 let engine: AudioEngine | null = null;
 let director: AudioDirector | null = null;
 
-export function startAudio(game: Game): AudioDirector {
+/** Yagona dvigatel (yuklanish ekranidagi intro uchun o‘yindan oldin ham kerak) */
+export function ensureEngine(): AudioEngine {
   engine ??= new AudioEngine(import.meta.env.BASE_URL);
+  return engine;
+}
+
+export function startAudio(game: Game): AudioDirector {
+  ensureEngine();
   director?.dispose();
-  director = new AudioDirector(game, engine);
+  director = new AudioDirector(game, engine!);
   return director;
 }
 
