@@ -113,15 +113,23 @@ export class GameScene {
   herdView!: HerdView;
   private fpsFrames = 0;
   private fpsTime = 0;
+  /** Telefon/planshet (sensorli ekran): GPU kuchsizroq — yengil sozlamalar */
+  private readonly mobile = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  /** Moslashuvchan o‘lchov: FPS past bo‘lsa render aniqligi (pixel ratio) pasayadi, yaxshilansa qaytadi */
+  private dynScale = 1;
+  private slowSecs = 0;
+  private fastSecs = 0;
+  /** FPS juda past — soyalar vaqtincha o‘chiriladi (saqlangan sozlama o‘zgarmaydi) */
+  private autoNoShadows = false;
 
   constructor(private container: HTMLElement, private game: Game) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    this.renderer = new THREE.WebGLRenderer({ antialias: !(typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches), powerPreference: 'high-performance' });
     // qurilish maydonida bino o‘z modeli kesish tekisligi bilan pastdan ochiladi
     this.renderer.localClippingEnabled = true;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.06;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = this.mobile ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
     this.renderer.domElement.className = 'scene-canvas';
     this.renderer.domElement.setAttribute('data-testid', 'scene');
     // Konteyner CSS da absolute + inset:0 (to‘liq ekran). Bu yerda «relative» yozilsa balandligi kanvasga bog‘lanib qolib, pastki qism bo‘sh qolardi.
@@ -137,7 +145,7 @@ export class GameScene {
     this.scene.add(hemi);
     this.sun = new THREE.DirectionalLight('#fff0d8', 2.3);
     this.sun.position.set(-16, 26, 12);
-    this.sun.shadow.mapSize.set(2048, 2048);
+    this.sun.shadow.mapSize.set(this.mobile ? 1024 : 2048, this.mobile ? 1024 : 2048);
     this.sun.shadow.radius = 3;
     const sc = this.sun.shadow.camera;
     sc.left = -24; sc.right = 24; sc.top = 24; sc.bottom = -24; sc.near = 1; sc.far = 90;
@@ -184,10 +192,10 @@ export class GameScene {
   // ---------------- sinxronlash ----------------
 
   private async loadDinoModel() {
-    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-    const loader = new GLTFLoader();
+    const { createGltfLoader, liteModelUrl } = await import('./gltfLoader');
+    const loader = createGltfLoader();
     loader.load(
-      `${import.meta.env.BASE_URL}assets/derived/creatures/Pteradactal.glb`,
+      liteModelUrl('Pteradactal.glb'),
       (gltf: { scene: THREE.Group }) => {
         const root = new THREE.Group();
         const model = gltf.scene;
@@ -625,8 +633,21 @@ export class GameScene {
     });
   }
 
+  /** Har soniyada: FPS < 28 (3 s) — aniqlik pasayadi, eng pastda soyalar o‘chadi; FPS ≥ 50 (6 s) — asta qaytadi */
+  private adaptQuality() {
+    if (this.fps < 28) { this.slowSecs++; this.fastSecs = 0; } else if (this.fps >= 50) { this.fastSecs++; this.slowSecs = 0; } else { this.slowSecs = 0; this.fastSecs = 0; }
+    if (this.slowSecs >= 3) {
+      this.slowSecs = 0;
+      if (this.dynScale > 0.65) { this.dynScale = Math.max(0.6, this.dynScale - 0.15); this.resize(); }
+      else if (!this.autoNoShadows && this.shadowsOn) { this.autoNoShadows = true; this.applyShadows(); }
+    } else if (this.fastSecs >= 6) {
+      this.fastSecs = 0;
+      if (this.dynScale < 1) { this.dynScale = Math.min(1, this.dynScale + 0.1); this.resize(); }
+    }
+  }
+
   private applyShadows() {
-    const high = this.game.settings.quality === 'high';
+    const high = this.game.settings.quality === 'high' && !this.autoNoShadows;
     if (this.shadowsOn === high) return;
     this.shadowsOn = high;
     this.renderer.shadowMap.enabled = high;
@@ -1138,7 +1159,9 @@ export class GameScene {
     const w = this.container.clientWidth || window.innerWidth;
     const h = this.container.clientHeight || window.innerHeight;
     const high = this.game.settings.quality === 'high';
-    this.renderer.setPixelRatio(high ? Math.min(window.devicePixelRatio || 1, 2) : 1);
+    // telefonda ekran zichligi 2.5–3x; to‘liq zichlikda chizish GPU ni bo‘g‘adi
+    const base = high ? Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2) : Math.min(window.devicePixelRatio || 1, 1);
+    this.renderer.setPixelRatio(Math.max(0.6, base * this.dynScale));
     this.renderer.setSize(w, h);
     this.cam.resize(w / Math.max(1, h));
   };
@@ -1147,6 +1170,8 @@ export class GameScene {
 
   private loop(now: number) {
     if (this.disposed) return;
+    // 90/120 Hz telefon ekranlari: 60 kadrdan ortiq chizish faqat batareya va issiqlik (vaqt keyingi kadrga o‘tadi)
+    if (this.mobile && now - this.lastT < 12) { this.raf = requestAnimationFrame(this.loop); return; }
     const dt = Math.min((now - this.lastT) / 1000, 0.25);
     this.lastT = now;
     this.elapsed += dt;
@@ -1157,6 +1182,7 @@ export class GameScene {
       this.fps = Math.round(this.fpsFrames / this.fpsTime);
       this.fpsFrames = 0;
       this.fpsTime = 0;
+      if (!this.game.tabHidden) this.adaptQuality();
     }
 
     // fon rejimi (Telegram «deactivated» yoki yashirin tab): simulyatsiya va og‘ir render to‘xtaydi

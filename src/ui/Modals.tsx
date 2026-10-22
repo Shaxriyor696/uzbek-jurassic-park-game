@@ -121,7 +121,7 @@ export function Modals() {
     return (
       <Modal title="Mualliflar va litsenziyalar" onClose={() => g.openModal('settings')} testid="credits-modal">
         <div className="credits" data-testid="credits">
-          <h3>Yuradigan dinozavr (public/models/apato.glb)</h3>
+          <h3>Yuradigan dinozavr (apatozavr)</h3>
           {c ? (
             <table className="help-table">
               <tbody>
@@ -134,7 +134,7 @@ export function Modals() {
           ) : (
             <p>{d?.status === 'error' ? `Model yuklanmadi: ${d.error}` : 'Model yuklanmoqda — ma’lumot GLB faylning o‘zidan o‘qiladi.'}</p>
           )}
-          <h3>Yangi dinozavrlar (public/models/dinosaurs)</h3>
+          <h3>Yangi dinozavrlar</h3>
           <table className="help-table" data-testid="herd-credits">
             <tbody>
               {(scene?.herdView.status ?? []).map((h) => (

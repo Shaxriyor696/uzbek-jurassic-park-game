@@ -63,12 +63,12 @@ export class DinoWalker {
   }
 
   private async load() {
-    const url = `${import.meta.env.BASE_URL}models/apato.glb`;
+    const { liteModelUrl, createGltfLoader } = await import('./gltfLoader');
+    const url = liteModelUrl('apato.glb');
     this.diag.url = url;
     const t0 = performance.now();
     try {
-      const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-      const gltf = await new GLTFLoader().loadAsync(url);
+      const gltf = await createGltfLoader().loadAsync(url);
       if (this.disposed) return;
       this.setup(gltf as unknown as { scene: THREE.Group; animations: THREE.AnimationClip[]; parser: { json: { asset?: { extras?: Record<string, string> }; skins?: unknown[] } } });
       this.diag.loadMs = Math.round(performance.now() - t0);

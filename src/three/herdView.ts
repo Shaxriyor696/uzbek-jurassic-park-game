@@ -111,10 +111,10 @@ export class HerdView {
   }
 
   private async loadAll() {
-    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+    const { createGltfLoader, liteModelUrl } = await import('./gltfLoader');
     const { clone } = await import('three/examples/jsm/utils/SkeletonUtils.js');
     this.cloneFn = clone;
-    const loader = new GLTFLoader();
+    const loader = createGltfLoader();
     // navbat: bir vaqtda bitta og‘ir fayl (xotira va tarmoq cho‘qqisi bo‘lmasin)
     for (const type of LOAD_ORDER) {
       const def = HERD_BY_TYPE[type];
@@ -122,7 +122,7 @@ export class HerdView {
       st.status = 'loading';
       const t0 = performance.now();
       try {
-        const url = import.meta.env.BASE_URL + 'models/dinosaurs/' + def.file.split('/').map(encodeURIComponent).join('/');
+        const url = liteModelUrl(def.file);
         const g = await loader.loadAsync(url);
         st.loadMs = Math.round(performance.now() - t0);
         const ex = (g.parser.json.asset?.extras ?? {}) as Record<string, string>;

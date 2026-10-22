@@ -464,18 +464,49 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
 .fatal small { opacity: 0.6; max-width: 420px; word-break: break-word; }
 .file-btn { cursor: pointer; display: inline-flex; align-items: center; padding: 6px 12px; }
 
-/* Telefon (tik ekran): chap ustun yig‘iladi, kamera tugmalari o‘rniga barmoq imo-ishoralari */
+/* Telefon (tik yoki yotiq): ixcham UI — xarita ko‘proq ko‘rinadi, chap ustun tugma bilan ochiladi */
 .panels-toggle { display: none; }
-@media (max-width: 600px) {
-  .topbar { justify-content: flex-start; }
+@media (max-width: 600px), (max-height: 500px) {
+  .topbar { top: 8px; gap: 5px; padding: 0; }
+  .chip { height: 36px; padding: 0 10px 0 5px; gap: 5px; }
+  .chip > svg { width: 24px; height: 24px; }
+  .chip-value { font-size: 15px; min-width: 0; }
+  .round-btn, .ui-layer .round-btn { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
+  .round-btn svg { width: 18px; height: 18px; }
+  .tick-chip svg, .per-tick, .tick-label { display: none; }
+  .tick-chip { padding: 0 6px; }
+  .toolbar { gap: 3px; padding: 4px; }
+  .tool-btn { padding: 2px; }
+  .tool-icon { width: 34px; height: 34px; }
+  .ui-layer .build-menu { bottom: calc(8px + var(--safe-bottom, 0px)); }
   .panels-toggle {
-    display: block; position: absolute; left: 12px; top: calc(70px + var(--safe-top, 0px)); pointer-events: auto;
-    font: inherit; font-weight: 800; font-size: 14px; padding: 9px 14px; border-radius: 999px; cursor: pointer; color: var(--ink);
+    display: block; position: absolute; left: 12px; top: calc(52px + var(--safe-top, 0px)); pointer-events: auto; z-index: 3;
+    font: inherit; font-weight: 800; font-size: 13px; padding: 7px 12px; border-radius: 999px; cursor: pointer; color: var(--ink);
   }
-  .ui-layer .left-col { display: none; top: calc(118px + var(--safe-top, 0px)); left: 12px; }
+  .ui-layer .left-col { display: none; top: calc(94px + var(--safe-top, 0px)); bottom: calc(66px + var(--safe-bottom, 0px)); left: 12px; }
+  .ui-layer .right-col { top: calc(52px + var(--safe-top, 0px)); bottom: calc(66px + var(--safe-bottom, 0px)); }
   .app.panels-open .ui-layer .left-col { display: flex; }
   .app.panels-open.has-side .ui-layer .right-col { display: none; }
-}
-@media (max-width: 600px) and (pointer: coarse), (max-height: 500px) and (pointer: coarse) {
   .camera-compass { display: none; }
+  .toasts { top: calc(52px + var(--safe-top, 0px)); }
+}
+@media (max-width: 600px) {
+  .topbar { left: 10px; right: 10px; justify-content: space-between; }
+}
+/* juda tor telefon: davr natijasi ham sig‘masa — budjet pul tugmasi orqali ochiladi */
+@media (max-width: 440px) {
+  .tick-chip { display: none; }
+}
+/* yotiq telefon: logo o‘rniga «Panellar» tugmasi yuqori qatorda */
+@media (max-height: 500px) {
+  .logo { display: none; }
+  .topbar { left: 150px; }
+  .panels-toggle { top: calc(8px + var(--safe-top, 0px)); }
+  .ui-layer .left-col { top: calc(52px + var(--safe-top, 0px)); width: min(300px, 45vw); }
+  .left-col .panel, .left-col .task-panel { width: 100%; }
+}
+@media (max-width: 370px) {
+  .chip { padding: 0 8px 0 4px; gap: 4px; }
+  .chip > svg { width: 20px; height: 20px; }
+  .chip-value { font-size: 14px; }
 }
