@@ -46,7 +46,7 @@ export interface SaveData {
   /** 7-sxemadan: dinozavrlar (6-sxemada `dino` — bitta) */
   creatures?: { dinos?: DinoState[]; dino?: DinoState | null; herd?: HerdDino[] };
   /** 8-sxemadan: bir martalik maslahatlar */
-  hints?: { construction: boolean; arrival?: boolean; gateAuto?: boolean };
+  hints?: { construction: boolean; arrival?: boolean; gateAuto?: boolean; onboarding?: boolean };
   /** 9-sxemadan: tog‘lar (yo‘q bo‘lsa o‘yin bo‘sh joyga yaratadi va saqlaydi) */
   terrain?: TerrainState;
   /** Shahar himoyasi: «Himoyani tekshirish» topshirig‘i bajarilgan (eski saqlashlarda yo‘q) */

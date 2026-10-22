@@ -510,3 +510,107 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
   .chip > svg { width: 20px; height: 20px; }
   .chip-value { font-size: 14px; }
 }
+
+/* ===== Dastyor tanishtiruvi (namuna: oq yumaloq ramka, to‘q ko‘k matn, moviy tugmalar, milliy naqsh) ===== */
+.ob-backdrop {
+  position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; pointer-events: auto;
+  padding: calc(16px + var(--safe-top, 0px)) calc(16px + var(--safe-right, 0px)) calc(16px + var(--safe-bottom, 0px)) calc(16px + var(--safe-left, 0px));
+  background: rgba(10, 28, 52, 0.38); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  animation: ob-fade 0.25s ease-out; overflow-y: auto;
+}
+.ob-panel {
+  position: relative; width: min(1060px, 100%); display: grid; grid-template-columns: minmax(200px, 34%) 1fr; grid-template-rows: 1fr auto;
+  background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%); border-radius: 34px; border: 1.5px solid #dbe8f6;
+  box-shadow: 0 24px 60px rgba(10, 28, 52, 0.35), 0 0 0 6px rgba(255, 255, 255, 0.55); color: #0f2147;
+  padding: 26px 30px 22px 18px; overflow: hidden; animation: ob-pop 0.3s cubic-bezier(.2, .9, .3, 1.15);
+}
+.ob-corner { position: absolute; top: 10px; width: 120px; height: auto; opacity: 0.85; mix-blend-mode: multiply; pointer-events: none; user-select: none;
+  -webkit-mask-image: radial-gradient(circle at 0 0, #000 45%, transparent 78%); mask-image: radial-gradient(circle at 0 0, #000 45%, transparent 78%); }
+.ob-corner.left { left: 10px; }
+.ob-corner.right { right: 10px; transform: scaleX(-1); }
+.ob-hero { position: relative; grid-row: 1 / span 2; display: flex; align-items: flex-end; justify-content: center; min-height: 0; margin: -8px 0 -22px -6px; }
+.ob-dastyor { width: 100%; max-height: 520px; object-fit: cover; object-position: top center; aspect-ratio: 2 / 2.4; user-select: none; filter: drop-shadow(0 10px 16px rgba(15, 33, 71, 0.18)); }
+.ob-name { position: absolute; left: 22px; bottom: 70px; background: #e8f3ff; color: #0f2147; font-weight: 800; font-size: 15px; padding: 7px 16px; border-radius: 999px; box-shadow: 0 2px 6px rgba(15, 33, 71, 0.12); }
+.ob-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 18px 6px 4px 18px; position: relative; z-index: 1; }
+.ob-body.fwd { animation: ob-in-r 0.28s ease-out; }
+.ob-body.back { animation: ob-in-l 0.28s ease-out; }
+.ob-title { margin: 0; font-size: clamp(24px, 3vw, 37px); line-height: 1.1; font-weight: 900; letter-spacing: -0.5px; color: #0f2147; padding-right: 40px; }
+.ob-text { margin: 0; font-size: clamp(15px, 1.7vw, 20px); line-height: 1.38; font-weight: 600; color: #1d2f5c; max-width: 640px; }
+.ob-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }
+.ob-card { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 10px 12px; border-radius: 20px;
+  background: linear-gradient(180deg, #eef6fe, #f6fbff); border: 1.5px solid #dcebf9; box-shadow: 0 3px 10px rgba(15, 33, 71, 0.06); min-width: 0; }
+.ob-art { width: 100%; aspect-ratio: 5 / 4; display: grid; place-items: center; overflow: hidden; border-radius: 14px; }
+.ob-art img { width: 100%; height: 100%; object-fit: contain; user-select: none;
+  -webkit-mask-image: radial-gradient(ellipse 70% 68% at 50% 50%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 70% 68% at 50% 50%, #000 62%, transparent 100%); }
+/* yo‘l rasmi chap tomondan qirqilgan — chekka yumshoq so‘nadi */
+.ob-art img[src$="road.jpg"] { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 26%, #000 82%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 26%, #000 82%, transparent 100%); }
+.ob-card.scene { padding: 0 0 12px; overflow: hidden; }
+.ob-card.scene .ob-art { border-radius: 18px 18px 0 0; aspect-ratio: 6 / 5; }
+.ob-card.scene .ob-art img { object-fit: cover; -webkit-mask-image: none; mask-image: none; }
+.ob-card figcaption { font-weight: 800; font-size: clamp(13px, 1.35vw, 17px); text-align: center; color: #0f2147; line-height: 1.2; padding: 0 4px; }
+.ob-divider { position: relative; height: 12px; margin: 4px 30px 0; }
+.ob-divider::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; background: linear-gradient(90deg, transparent, #c9dcf2 15%, #c9dcf2 85%, transparent); }
+.ob-divider span { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; transform: translate(-50%, -50%) rotate(45deg); background: #fff; border: 2px solid #9cc2ea; }
+.ob-foot { margin: 0; text-align: center; color: #3d5585; font-size: clamp(13px, 1.3vw, 16px); font-weight: 600; }
+.ob-bottom { grid-column: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 0 18px; flex-wrap: wrap; position: relative; z-index: 1; }
+.ob-progress { display: flex; align-items: center; gap: 8px; }
+.ob-dot { width: 13px; height: 13px; border-radius: 50%; background: #d7e9fb; transition: background 0.2s, transform 0.2s; }
+.ob-dot.on { background: #16c1ea; transform: scale(1.12); }
+.ob-count { margin-left: 8px; font-weight: 800; color: #2a4478; font-size: 15px; }
+.ob-actions { display: flex; gap: 10px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+.ob-btn { font: inherit; font-weight: 800; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px;
+  padding: 0 24px; border-radius: 999px; border: none; cursor: pointer; transition: transform 0.12s, box-shadow 0.15s, filter 0.15s; white-space: nowrap; }
+.ob-btn:active { transform: translateY(1px) scale(0.98); }
+.ob-btn.primary { background: linear-gradient(180deg, #34d6f6, #0fb3e2); color: #fff; box-shadow: 0 6px 16px rgba(16, 180, 226, 0.4); min-width: 170px; }
+.ob-btn.primary:hover { filter: brightness(1.05); }
+.ob-btn.ghost { background: #e6f1fd; color: #0f2147; }
+.ob-btn.soft { background: #eef4fb; color: #0f2147; font-size: 15px; }
+.ob-btn:focus-visible { outline: 3px solid rgba(22, 193, 234, 0.6); outline-offset: 3px; }
+@keyframes ob-fade { from { opacity: 0; } }
+@keyframes ob-pop { from { opacity: 0; transform: translateY(14px) scale(0.97); } }
+@keyframes ob-in-r { from { opacity: 0; transform: translateX(18px); } }
+@keyframes ob-in-l { from { opacity: 0; transform: translateX(-18px); } }
+@media (prefers-reduced-motion: reduce) { .ob-backdrop, .ob-panel, .ob-body.fwd, .ob-body.back { animation: none; } }
+
+/* planshet / tor kompyuter oynasi */
+@media (max-width: 900px) {
+  .ob-panel { grid-template-columns: minmax(150px, 30%) 1fr; padding: 20px 20px 18px 10px; border-radius: 28px; }
+  .ob-name { bottom: 60px; left: 14px; font-size: 13px; }
+  .ob-cards { gap: 10px; }
+}
+/* telefon (tik): Dastyor sarlavha yonida ixcham, kartochkalar uchtadan, tugmalar pastda to‘liq kenglikda */
+@media (max-width: 640px) {
+  .ob-backdrop { place-items: start center; padding-left: calc(10px + var(--safe-left, 0px)); padding-right: calc(10px + var(--safe-right, 0px)); }
+  .ob-panel { grid-template-columns: 1fr; grid-template-rows: auto auto auto; padding: 16px 14px 14px; border-radius: 26px; }
+  .ob-corner { width: 74px; }
+  .ob-hero { grid-row: 1; height: 128px; margin: -4px 0 -4px; justify-content: flex-start; align-items: flex-end; gap: 10px; }
+  .ob-dastyor { width: 190px; height: 128px; max-height: none; aspect-ratio: auto; object-fit: cover; object-position: 50% 3%; margin-left: -34px; margin-right: -40px; }
+  .ob-name { position: static; margin-bottom: 18px; }
+  .ob-body { grid-row: 2; padding: 6px 2px 0; gap: 10px; }
+  .ob-title { font-size: 24px; padding-right: 0; }
+  .ob-text { font-size: 15px; }
+  .ob-cards { gap: 8px; }
+  .ob-card { padding: 6px 4px 8px; border-radius: 16px; }
+  .ob-card figcaption { font-size: 12.5px; }
+  .ob-divider { margin: 2px 16px 0; }
+  .ob-bottom { grid-column: 1; grid-row: 3; padding: 12px 0 0; flex-direction: column-reverse; align-items: stretch; }
+  .ob-progress { justify-content: center; }
+  .ob-actions { margin: 0; display: flex; flex-wrap: wrap; }
+  .ob-actions .ob-btn { flex: 1 1 0; min-width: 0; padding: 0 12px; font-size: 15px; }
+  .ob-actions .ob-btn.primary { flex-basis: 100%; order: -1; }
+}
+/* yotiq telefon / past oyna: Dastyor kichik, kartochkalar pastroq */
+@media (max-height: 560px) and (min-width: 641px) {
+  .ob-backdrop { place-items: start center; padding-top: calc(8px + var(--safe-top, 0px)); padding-bottom: calc(8px + var(--safe-bottom, 0px)); }
+  .ob-panel { grid-template-columns: minmax(130px, 22%) 1fr; padding: 14px 18px 12px 8px; }
+  .ob-dastyor { max-height: 330px; }
+  .ob-name { bottom: 46px; font-size: 12px; padding: 5px 12px; }
+  .ob-body { gap: 7px; padding-top: 8px; }
+  .ob-title { font-size: 24px; }
+  .ob-text { font-size: 14.5px; }
+  .ob-art { aspect-ratio: 16 / 10; }
+  .ob-card.scene .ob-art { aspect-ratio: 16 / 10; }
+  .ob-card { padding: 6px 6px 8px; gap: 4px; }
+  .ob-btn { min-height: 42px; font-size: 15px; }
+  .ob-corner { width: 80px; }
+}

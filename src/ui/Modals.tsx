@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { audioEngine } from '../audio';
 import { assetUrl, useGame, useScene } from './useGame';
 import { Icon } from './icons';
+import { Onboarding } from './Onboarding';
 
 function Modal({ title, children, onClose, testid }: { title: string; children: ReactNode; onClose?: () => void; testid: string }) {
   return (
@@ -23,6 +24,8 @@ export function Modals() {
   if (!g.modal) return null;
   const close = () => g.openModal(null);
 
+  if (g.modal === 'onboarding') return <Onboarding />;
+
   if (g.modal === 'settings') {
     const saved = g.lastSavedAt ? new Date(g.lastSavedAt).toLocaleTimeString('uz-UZ') : 'hali saqlanmagan';
     return (
@@ -35,6 +38,10 @@ export function Modals() {
               {g.saveError && <small className="error">{g.saveError}</small>}
             </div>
             <button className="btn-primary" onClick={() => g.saveNow(true)} data-testid="save-now">Saqlash</button>
+          </div>
+          <div className="setting">
+            <div><b>Dastyor tanishtiruvi</b><small>Uch sahifali qisqa tanishtiruvni qayta ko‘rish — shahar va topshiriqlar o‘zgarmaydi.</small></div>
+            <button className="btn-ghost" onClick={() => g.startOnboarding(true)} data-testid="replay-onboarding">Ko‘rish</button>
           </div>
           <div className="setting">
             <div><b>Yangi shahar</b><small>Joriy shahar o‘chiriladi — avval tasdiq so‘raladi.</small></div>
@@ -90,6 +97,7 @@ export function Modals() {
         <div className="help-intro" data-testid="help-intro">
           <img src={assetUrl('assets/brand/logo-384.png')} alt="Uzbek Jurassic Park" draggable={false} />
           <p><b>Uzbek Jurassic Park</b> — O‘zbekiston muhitidagi shahar qurish va boshqarish o‘yini. Uylar, yo‘llar, biznes va xizmat binolarini quring, budjetni boshqaring, aholi ehtiyojlarini (yo‘l, elektr, suv, ta’lim, tibbiyot) qondiring va shaharni atrofdagi dinozavrlardan himoya qiling. Yo‘lda Dastyor yordam beradi.</p>
+          <button className="btn-ghost" onClick={() => g.startOnboarding(true)} data-testid="help-onboarding">Dastyor tanishtiruvi</button>
         </div>
         <table className="help-table">
           <tbody>

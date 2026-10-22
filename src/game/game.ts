@@ -54,7 +54,7 @@ export interface Toast {
   tone: 'info' | 'ok' | 'error';
 }
 
-export type ModalKind = null | 'settings' | 'confirmNew' | 'help' | 'invalidSave' | 'credits';
+export type ModalKind = null | 'settings' | 'confirmNew' | 'help' | 'invalidSave' | 'credits' | 'onboarding';
 
 export const DEFAULT_CAMERA: CameraState = { targetX: -6.5, targetZ: -0.5, azimuth: 0.55, polar: 0.74, distance: 21 };
 export const AUTOSAVE_DEBOUNCE_MS = 500;
@@ -100,7 +100,12 @@ export class Game {
   terrain: TerrainState | null = null;
   terrainField: TerrainField | null = null;
   /** Bir martalik maslahatlar (saqlanadi) */
-  hints = { construction: false, arrival: false, gateAuto: true };
+  /** onboarding — Dastyor tanishtiruvi ko‘rilgan/o‘tkazilgan (yangi shaharda false) */
+  hints = { construction: false, arrival: false, gateAuto: true, onboarding: true };
+  /** Tanishtiruv sozlamalardan qayta ko‘rilmoqda — tugaganda hech narsa o‘zgarmaydi */
+  onboardingReplay = false;
+  /** Tanishtiruv birinchi marta tugadi — UI Dastyor topshirig‘ini ko‘rsatadi (telefonda panellar ochiladi) */
+  dastyorFocus = 0;
   /** Transport: yangi aholi (avtomobil/avtobus) va shahar ichidagi harakat. Safarlar saqlanadi. */
   traffic = new Traffic();
   /** Tanlangan transport (UI) */
@@ -224,7 +229,7 @@ export class Game {
     this.healthTaskDone = false;
     this.civic = initialCivic();
     this.dinos = [];
-    this.hints = { construction: false, arrival: false, gateAuto: true };
+    this.hints = { construction: false, arrival: false, gateAuto: true, onboarding: false };
     this.traffic.load(undefined, this.objects);
     this.selectedVehicle = null;
     this.defenseChecked = false;
@@ -259,7 +264,8 @@ export class Game {
     this.healthTaskDone = d.health?.taskDone === true;
     this.civic = d.civic ? structuredClone(d.civic) : initialCivic();
     this.dinos = structuredClone(d.creatures?.dinos ?? []);
-    this.hints = { construction: d.hints?.construction === true, arrival: d.hints?.arrival === true, gateAuto: true };
+    // eski saqlashlarda maydon yo‘q — tanishtiruv majburan ochilmaydi
+    this.hints = { construction: d.hints?.construction === true, arrival: d.hints?.arrival === true, gateAuto: true, onboarding: d.hints?.onboarding !== false };
     this.defenseChecked = d.defense?.checked === true;
     this.selectedVehicle = null;
     this.defenseSeen = null;
@@ -947,7 +953,8 @@ export class Game {
 
   /** Har kadrda chaqiriladi; dt soniyada. */
   update(dt: number) {
-    if (this.paused || this.tabHidden) return;
+    // tanishtiruv ochiq — vaqt, xarajat, daromad, qurilish va ko‘chib kelish to‘xtaydi (paused holatiga tegilmaydi)
+    if (this.paused || this.tabHidden || this.modal === 'onboarding') return;
     const step = Math.min(Math.max(dt, 0), MAX_FRAME_DT);
     this.simTime += step;
     // dinozavr: o‘yin vaqti bilan (pauza/yashirin tabda to‘xtaydi, katta dt cheklangan)
@@ -1323,7 +1330,28 @@ export class Game {
     this.emit();
   }
 
+  /** Dastyor tanishtiruvi: replay — sozlamalardan qayta ko‘rish (shahar, pul va topshiriqlar o‘zgarmaydi) */
+  startOnboarding(replay = false) {
+    this.onboardingReplay = replay;
+    this.tool = 'select';
+    this.buildType = null;
+    this.openModal('onboarding');
+  }
+
+  /** Tanishtiruv yopildi (oxirgi tugma, «O‘tkazib yuborish», Esc yoki Telegram «orqaga») */
+  private finishOnboarding() {
+    if (this.onboardingReplay) { this.onboardingReplay = false; return; }
+    if (!this.hints.onboarding) {
+      this.hints.onboarding = true;
+      // mavjud birinchi topshiriq («Yo‘l quring») ko‘rinadi — yangi topshiriq yaratilmaydi
+      this.dastyorOpen = true;
+      this.dastyorFocus++;
+      this.scheduleAutosave();
+    }
+  }
+
   openModal(m: ModalKind) {
+    if (this.modal === 'onboarding' && m !== 'onboarding') this.finishOnboarding();
     if (m && !this.modal) this.sfx('open');
     else if (!m && this.modal) this.sfx('close');
     this.modal = m;
@@ -1645,6 +1673,7 @@ export class Game {
     this.modal = null;
     this.saveNow(false);
     this.pushToast('Yangi shahar boshlandi', 'info');
+    // Dastyor tanishtiruvi: hints.onboarding = false — oynani UI sahna tayyor bo‘lganda ochadi
     this.emit(true);
   }
 

@@ -49,6 +49,44 @@ describe('Yangi o‘yin', () => {
     expect(g.tutorial.step).toBe(initialTutorial().step);
   });
 
+  it('Dastyor tanishtiruvi: ochiq paytda simulyatsiya to‘xtaydi, paused o‘zgarmaydi; yakunda saqlanadi; qayta ko‘rish hech narsani o‘zgartirmaydi', () => {
+    const s = new MemStorage();
+    const g = Game.boot(s);
+    expect(g.hints.onboarding).toBe(false);
+    g.startOnboarding(false);
+    for (let i = 0; i < 40; i++) g.update(0.25);
+    expect(g.simTime).toBe(0);
+    expect(g.paused).toBe(false);
+    expect(g.placeBuilding('uy_a', 20, 20, 0)).toMatchObject({ ok: false });
+    g.openModal(null);
+    expect(g.hints.onboarding).toBe(true);
+    expect(g.dastyorOpen).toBe(true);
+    expect(g.tutorial.step).toBe(0);
+    g.update(0.25);
+    expect(g.simTime).toBeGreaterThan(0);
+    g.saveNow();
+    expect(Game.boot(s).hints.onboarding).toBe(true);
+    // qayta ko‘rish: pauza holati, pul va topshiriq saqlanadi
+    g.togglePause();
+    const money = g.money, step = g.tutorial.step;
+    g.startOnboarding(true);
+    g.openModal(null);
+    expect([g.paused, g.money, g.tutorial.step, g.hints.onboarding]).toEqual([true, money, step, true]);
+  });
+
+  it('eski saqlash (hints.onboarding yo‘q) — tanishtiruv majburan ochilmaydi; «Yangi shahar» — ochiladi', () => {
+    const s = new MemStorage();
+    const g = Game.boot(s);
+    g.saveNow();
+    const d = JSON.parse(s.getItem(SAVE_KEY)!);
+    delete d.hints.onboarding;
+    s.setItem(SAVE_KEY, JSON.stringify(d));
+    const old = Game.boot(s);
+    expect(old.hints.onboarding).toBe(true);
+    old.confirmNewCity();
+    expect(old.hints.onboarding).toBe(false); // UI sahna tayyor bo‘lgach tanishtiruvni ochadi
+  });
+
   it('saqlangan shahar bo‘lsa — u ochiladi (davom etish), bo‘sh shahar bilan almashtirilmaydi', () => {
     const s = new MemStorage();
     const g = Game.boot(s);

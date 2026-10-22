@@ -22,7 +22,7 @@ import { Modals } from './ui/Modals';
 import { BudgetPanel, BuildMenu, Dastyor, HoverHint, InfoPanel, Toasts, EducationPanel, HealthPanel } from './ui/Panels';
 import { DefensePanel } from './ui/DefensePanels';
 import { PopulationPanel, VehiclePanel } from './ui/TrafficPanels';
-import { GameContext, useGame } from './ui/useGame';
+import { GameContext, useGame, useScene } from './ui/useGame';
 
 declare global {
   interface Window {
@@ -67,6 +67,7 @@ export function App() {
     s.frameHooks.add(audioHook);
     // yuklanish ekrani (index.html) — sahna tayyor; intro bo‘kirishi/tanlovi holatiga qarab silliq yo‘qoladi
     introSceneReady();
+
     // Testlar (Playwright) uchun faqat ?test=1 bo‘lsa — o‘yinchi UI siga hech narsa qo‘shmaydi.
     if (new URLSearchParams(location.search).has('test')) window.__BOYOTA__ = { game, scene: s, audio, catalog: CATALOG, businessTypes: BUSINESSES.map((b) => b.type), educationTypes: EDUCATION.map((e) => e.type) };
     // Faqat dev rejimida: ?pul=2000000 — shahar pulini o‘rnatadi, saqlaydi va parametrni manzildan olib tashlaydi.
@@ -141,6 +142,16 @@ function Shell({ hostRef }: { hostRef: RefObject<HTMLDivElement> }) {
   const side = g.budgetOpen || (g.tool === 'select' && !!g.selectedId);
   // telefon (tor ekran): chap ustun panellari xaritani yopmasin — tugma bilan ochiladi
   const [panelsOpen, setPanelsOpen] = useState(false);
+  const scene = useScene();
+  // Dastyor tanishtiruvi — yangi shahar, xarita (sahna) tayyor bo‘lgach; ko‘rilgan bo‘lsa yoki eski saqlash — ochilmaydi.
+  // Avtomatik sinovlar (?test) xaritani bosadi — tanishtiruv faqat ?onboarding bilan ochiladi.
+  useEffect(() => {
+    if (!scene || g.hints.onboarding || g.modal) return;
+    const q = new URLSearchParams(location.search);
+    if (!q.has('test') || q.has('onboarding')) g.startOnboarding(false);
+  }, [scene, g, g.hints.onboarding, g.modal]);
+  // tanishtiruv tugadi — telefonda Dastyorning birinchi topshirig‘i ko‘rinsin (chap ustun ochiladi)
+  useEffect(() => { if (g.dastyorFocus > 0) setPanelsOpen(true); }, [g.dastyorFocus]);
   return (
     <div className={'app' + (side ? ' has-side' : '') + (panelsOpen ? ' panels-open' : '')}>
       <div ref={hostRef} className="scene-host" />
