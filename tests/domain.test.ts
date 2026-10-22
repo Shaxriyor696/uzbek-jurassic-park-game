@@ -83,6 +83,12 @@ describe('Yangi o‘yin', () => {
     s.setItem(SAVE_KEY, JSON.stringify(d));
     const old = Game.boot(s);
     expect(old.hints.onboarding).toBe(true);
+    // shu qurilmada hali ko‘rilmagan — o‘yin birinchi ochilganda bir marta chiqadi; yopilgach qayta chiqmaydi
+    expect(old.onboardingDue).toBe(true);
+    old.startOnboarding(false);
+    old.openModal(null);
+    expect(old.onboardingDue).toBe(false);
+    expect(Game.boot(s).onboardingDue).toBe(false);
     old.confirmNewCity();
     expect(old.hints.onboarding).toBe(false); // UI sahna tayyor bo‘lgach tanishtiruvni ochadi
   });

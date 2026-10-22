@@ -143,13 +143,13 @@ function Shell({ hostRef }: { hostRef: RefObject<HTMLDivElement> }) {
   // telefon (tor ekran): chap ustun panellari xaritani yopmasin — tugma bilan ochiladi
   const [panelsOpen, setPanelsOpen] = useState(false);
   const scene = useScene();
-  // Dastyor tanishtiruvi — yangi shahar, xarita (sahna) tayyor bo‘lgach; ko‘rilgan bo‘lsa yoki eski saqlash — ochilmaydi.
+  // Dastyor tanishtiruvi — xarita (sahna) tayyor bo‘lgach: yangi shahar yoki shu qurilmada o‘yin birinchi ochilganda (bir marta).
   // Avtomatik sinovlar (?test) xaritani bosadi — tanishtiruv faqat ?onboarding bilan ochiladi.
   useEffect(() => {
-    if (!scene || g.hints.onboarding || g.modal) return;
+    if (!scene || !g.onboardingDue || g.modal) return;
     const q = new URLSearchParams(location.search);
     if (!q.has('test') || q.has('onboarding')) g.startOnboarding(false);
-  }, [scene, g, g.hints.onboarding, g.modal]);
+  }, [scene, g, g.onboardingDue, g.modal]);
   // tanishtiruv tugadi — telefonda Dastyorning birinchi topshirig‘i ko‘rinsin (chap ustun ochiladi)
   useEffect(() => { if (g.dastyorFocus > 0) setPanelsOpen(true); }, [g.dastyorFocus]);
   return (

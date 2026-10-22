@@ -54,6 +54,9 @@ export interface Toast {
   tone: 'info' | 'ok' | 'error';
 }
 
+/** Qurilma darajasidagi belgi (shahar saqlashidan alohida) */
+export const ONBOARDING_SEEN_KEY = 'ujp.onboarding.seen';
+
 export type ModalKind = null | 'settings' | 'confirmNew' | 'help' | 'invalidSave' | 'credits' | 'onboarding';
 
 export const DEFAULT_CAMERA: CameraState = { targetX: -6.5, targetZ: -0.5, azimuth: 0.55, polar: 0.74, distance: 21 };
@@ -1330,6 +1333,18 @@ export class Game {
     this.emit();
   }
 
+  /** Shu qurilmada (brauzer / Telegram foydalanuvchisi) tanishtiruv ko‘rilganmi — o‘yin birinchi ochilganda ham chiqishi uchun */
+  onboardingSeenHere(): boolean {
+    // saqlash umuman yo‘q — har ochilishda takrorlanmasin
+    if (!this.storage) return true;
+    try { return this.storage.getItem(ONBOARDING_SEEN_KEY) === '1'; } catch { return true; }
+  }
+
+  /** Tanishtiruv ochilishi kerakmi: yangi shahar yoki shu qurilmada hali ko‘rilmagan */
+  get onboardingDue(): boolean {
+    return !this.hints.onboarding || !this.onboardingSeenHere();
+  }
+
   /** Dastyor tanishtiruvi: replay — sozlamalardan qayta ko‘rish (shahar, pul va topshiriqlar o‘zgarmaydi) */
   startOnboarding(replay = false) {
     this.onboardingReplay = replay;
@@ -1341,6 +1356,7 @@ export class Game {
   /** Tanishtiruv yopildi (oxirgi tugma, «O‘tkazib yuborish», Esc yoki Telegram «orqaga») */
   private finishOnboarding() {
     if (this.onboardingReplay) { this.onboardingReplay = false; return; }
+    try { this.storage?.setItem(ONBOARDING_SEEN_KEY, '1'); } catch { /* saqlab bo‘lmadi — keyingi ochilishda yana ko‘rsatiladi */ }
     if (!this.hints.onboarding) {
       this.hints.onboarding = true;
       // mavjud birinchi topshiriq («Yo‘l quring») ko‘rinadi — yangi topshiriq yaratilmaydi
