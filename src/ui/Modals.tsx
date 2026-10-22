@@ -66,6 +66,7 @@ export function Modals() {
             <button className="btn-ghost" onClick={() => g.openModal('credits')} data-testid="open-credits">Ko‘rish</button>
           </div>
           <SoundSettings />
+          <CityFile />
         </div>
       </Modal>
     );
@@ -217,6 +218,36 @@ function SoundSettings() {
         </div>
       </div>
       <button className={'btn-ghost' + (s?.muted ? ' on' : '')} onClick={() => set({ muted: !s?.muted })} data-testid="mute" disabled={!e}>{s?.muted ? 'Ovozni yoqish' : 'Ovozni o‘chirish'}</button>
+    </div>
+  );
+}
+
+/** Shaharni faylga saqlash / fayldan yuklash (masalan, kompyuterdagi shaharni Telegram ga ko‘chirish) */
+function CityFile() {
+  const g = useGame();
+  const download = () => {
+    const blob = new Blob([g.exportSaveText()], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `uzbek-jurassic-park-shahar-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+  const upload = (f: File | undefined) => {
+    if (!f) return;
+    void f.text().then((raw) => {
+      if (!window.confirm('Fayldagi shahar yuklansinmi? Joriy shahar uning o‘rniga almashadi (avval joriy shaharni faylga saqlab qo‘yishingiz mumkin).')) return;
+      const r = g.importSaveText(raw);
+      if (!r.ok) g.pushToast('Fayl yaroqsiz: ' + (r.error ?? ''), 'error');
+    });
+  };
+  return (
+    <div className="setting">
+      <div><b>Shahar fayli</b><small>Shaharni faylga saqlang yoki fayldan yuklang — boshqa qurilma yoki Telegram ga ko‘chirish uchun.</small></div>
+      <div className="segmented">
+        <button onClick={download} data-testid="export-city">Faylga</button>
+        <label className="file-btn" data-testid="import-city">Fayldan<input type="file" accept="application/json,.json" hidden onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ''; }} /></label>
+      </div>
     </div>
   );
 }

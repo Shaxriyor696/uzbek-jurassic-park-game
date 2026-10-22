@@ -19,7 +19,12 @@
     "test:dino": "node scripts/e2e-dino.mjs",
     "test:qurilish": "node scripts/e2e-qurilish.mjs",
     "test:toglar": "node scripts/e2e-toglar.mjs",
-    "test:dinozavrlar": "node scripts/e2e-dinozavrlar.mjs"
+    "test:dinozavrlar": "node scripts/e2e-dinozavrlar.mjs",
+    "bot:setup": "node scripts/telegram-setup.mjs",
+    "bot:webhook": "node scripts/telegram-setup.mjs --webhook",
+    "bot:poll": "node scripts/bot-polling.mjs",
+    "worker:dev": "cd server && npx wrangler dev",
+    "worker:deploy": "cd server && npx wrangler deploy"
   },
   "dependencies": {
     "react": "^18.3.1",

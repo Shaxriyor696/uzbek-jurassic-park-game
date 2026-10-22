@@ -5,7 +5,7 @@ import { validatePlacement, validateRoadPath, type PlacementResult, type RoadPat
 import { createPresetObjects } from './presets';
 import { RoadGrid } from './roadNetwork';
 import { computeBudget, type Budget } from './budget';
-import { readSave, SCHEMA_VERSION, writeSave, type KeyValueStorage, type SaveData } from './saveStore';
+import { readSave, SCHEMA_VERSION, writeSave, type KeyValueStorage, type SaveData, SAVE_KEY } from './saveStore';
 import { cityHappiness, houseForecast, MAX_FRAME_DT, runTick, START_MONEY, TICK_SECONDS, totalPopulation, type HouseForecast } from './simulation';
 import { advanceTutorial, initialTutorial } from './tutorial';
 import { clampSkill, EDU_CONFIG, EDU_TASKS, educationSummary, type EducationSummary } from './education';
@@ -671,6 +671,23 @@ export class Game {
       if (inside > 0 && seen.inside === 0) this.pushToast('Ichkarida dinozavr qolgan.', 'error');
     }
     this.defenseSeen = { status: d.status, inside, t: 1 };
+  }
+
+  /** Shahar fayli (boshqa qurilma yoki Telegram ga ko‘chirish uchun) */
+  exportSaveText(): string {
+    return JSON.stringify(this.toSaveData());
+  }
+
+  /** Fayldan shahar: mavjud tekshiruv va migratsiya bilan (yaroqsiz bo‘lsa joriy shahar o‘zgarmaydi) */
+  importSaveText(raw: string): { ok: boolean; error?: string } {
+    const mem = new Map<string, string>([[SAVE_KEY, raw]]);
+    const r = readSave({ getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => { mem.set(k, v); }, removeItem: (k) => { mem.delete(k); } });
+    if (r.status !== 'ok') return { ok: false, error: r.status === 'invalid' ? r.error : 'Fayl o‘qilmadi' };
+    this.applySave(r.data);
+    this.saveNow(true);
+    this.pushToast('Shahar fayldan yuklandi', 'ok');
+    this.emit(true);
+    return { ok: true };
   }
 
   setDefenseOverlay(on: boolean) {

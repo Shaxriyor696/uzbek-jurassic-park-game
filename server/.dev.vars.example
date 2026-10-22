@@ -1,0 +1,3 @@
+# `npx wrangler dev` uchun lokal maxfiy qiymatlar (server/.dev.vars — repositoryga tushmaydi)
+BOT_TOKEN=
+WEBHOOK_SECRET=

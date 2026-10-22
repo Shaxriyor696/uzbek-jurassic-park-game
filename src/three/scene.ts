@@ -95,7 +95,7 @@ export class GameScene {
   private hoverBox = new THREE.Box3Helper(new THREE.Box3(), '#ff4d4d');
 
   // input
-  private pointer: { id: number; button: number; x: number; y: number; moved: boolean } | null = null;
+  private pointer: { id: number; button: number; x: number; y: number; moved: boolean; lx: number; ly: number; touch: boolean } | null = null;
   private hoverCell: { x: number; z: number } | null = null;
   private roadStart: { x: number; z: number } | null = null;
   private roadPath: { x: number; z: number }[] = [];
@@ -699,6 +699,7 @@ export class GameScene {
         const lacks = previewSupply({ type, gridX: gx, gridZ: gz, rotation: rot }, g.objects.values(), g.statuses, g.roads);
         if (lacks.length) text += ` · bu yerda ${lacks.map(supplyWord).join(', ')} yo‘q`;
       }
+      if (this.armed?.kind === 'build' && this.armed.key === `${type}:${gx}:${gz}:${rot}` && res.ok) text = '👆 Tasdiqlash uchun shu joyga yana bir marta bosing · ' + text;
       this.setHint({ text, ok: res.ok });
       this.pendingPlacement = { type, gx, gz, rot };
     } else {
@@ -760,7 +761,8 @@ export class GameScene {
         const chk = g.canDemolish(this.hoverObjectId);
         const o = g.objects.get(this.hoverObjectId)!;
         const impact = chk.ok ? g.demolishImpact(this.hoverObjectId) : [];
-        this.setHint({ text: chk.ok ? `${CATALOG[o.type].name}ni buzish (bepul, narx qaytarilmaydi)${impact.length ? ' — diqqat: ' + impact.join('; ') : ''}` : chk.reason, ok: chk.ok });
+        const confirmTap = this.armed?.kind === 'demolish' && this.armed.id === this.hoverObjectId ? '👆 Buzishni tasdiqlash uchun yana bir marta bosing · ' : '';
+        this.setHint({ text: chk.ok ? `${confirmTap}${CATALOG[o.type].name}ni buzish (bepul, narx qaytarilmaydi)${impact.length ? ' — diqqat: ' + impact.join('; ') : ''}` : chk.reason, ok: chk.ok });
       }
     }
     if (!(g.tool === 'build' && this.hoverCell) && !((roadTool || g.tool === 'wall') && (this.roadStart || this.hoverCell)) && !(g.tool === 'demolish' && this.hoverObjectId)) {
@@ -942,10 +944,35 @@ export class GameScene {
     document.addEventListener('visibilitychange', this.onVisibility);
   }
 
+  // ---- sensorli ekran: ikki barmoq — zoom, aylantirish va surish; bosish — avval ko‘rish, ikkinchi bosish — tasdiq ----
+  private touches = new Map<number, { x: number; y: number }>();
+  private gesture: { dist: number; angle: number; mx: number; my: number } | null = null;
+  /** Telefonda qurish/buzish: birinchi bosish belgilaydi, ikkinchisi (shu joyga) tasdiqlaydi */
+  private armed: { kind: 'build'; key: string; t: number } | { kind: 'demolish'; id: string; t: number } | null = null;
+
+  private gestureState() {
+    const [a, b] = [...this.touches.values()];
+    return { dist: Math.hypot(b.x - a.x, b.y - a.y), angle: Math.atan2(b.y - a.y, b.x - a.x), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+  }
+
   private onDown = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.touches.size === 2) {
+        // ikkinchi barmoq: qurilish/chizish bekor, faqat kamera
+        this.gesture = this.gestureState();
+        this.roadStart = null;
+        this.roadPath = [];
+        if (this.pointer) this.pointer.moved = true;
+        e.preventDefault();
+        return;
+      }
+      if (this.touches.size > 2) return;
+      this.hoverCell = this.cellFromClient(e.clientX, e.clientY);
+    }
     if (this.pointer) return;
     this.renderer.domElement.setPointerCapture(e.pointerId);
-    this.pointer = { id: e.pointerId, button: e.button, x: e.clientX, y: e.clientY, moved: false };
+    this.pointer = { id: e.pointerId, button: e.button, x: e.clientX, y: e.clientY, moved: false, lx: e.clientX, ly: e.clientY, touch: e.pointerType === 'touch' };
     if (e.button === 0 && (this.game.tool === 'road' || this.game.tool === 'bridge' || this.game.tool === 'wall') && !this.game.modal) {
       const c = this.cellFromClient(e.clientX, e.clientY);
       if (c) {
@@ -958,14 +985,31 @@ export class GameScene {
 
   private onMove = (e: PointerEvent) => {
     this.hintPos = { x: e.clientX, y: e.clientY };
+    if (e.pointerType === 'touch' && this.touches.has(e.pointerId)) {
+      this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.touches.size >= 2 && this.gesture) {
+        const n = this.gestureState(), o = this.gesture;
+        if (n.dist > 10 && o.dist > 10) this.cam.zoom(o.dist / n.dist);
+        let da = n.angle - o.angle;
+        if (da > Math.PI) da -= Math.PI * 2;
+        if (da < -Math.PI) da += Math.PI * 2;
+        this.cam.orbit(-da, 0);
+        this.cam.panScreen(n.mx - o.mx, n.my - o.my, this.renderer.domElement.clientHeight);
+        this.gesture = n;
+        return;
+      }
+    }
     const p = this.pointer;
     if (p && p.id === e.pointerId) {
       const dx = e.clientX - p.x;
       const dy = e.clientY - p.y;
-      if (!p.moved && Math.hypot(dx, dy) > CLICK_PX) p.moved = true;
+      // movementX telefonlarda doim ham bo‘lmaydi — oldingi nuqtadan farq
+      const mx = e.clientX - p.lx, my = e.clientY - p.ly;
+      p.lx = e.clientX; p.ly = e.clientY;
+      if (!p.moved && Math.hypot(dx, dy) > (p.touch ? CLICK_PX * 2 : CLICK_PX)) p.moved = true;
       if (p.moved) {
-        if (p.button === 2) this.cam.orbit(-(e.movementX) * 0.006, e.movementY * 0.005);
-        else if (p.button === 1 || (p.button === 0 && this.game.tool !== 'road' && this.game.tool !== 'bridge' && this.game.tool !== 'wall')) this.cam.panScreen(e.movementX, e.movementY, this.renderer.domElement.clientHeight);
+        if (p.button === 2) this.cam.orbit(-mx * 0.006, my * 0.005);
+        else if (p.button === 1 || (p.button === 0 && this.game.tool !== 'road' && this.game.tool !== 'bridge' && this.game.tool !== 'wall')) this.cam.panScreen(mx, my, this.renderer.domElement.clientHeight);
       }
     }
     this.hoverCell = this.cellFromClient(e.clientX, e.clientY);
@@ -976,6 +1020,10 @@ export class GameScene {
   };
 
   private onUp = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      this.touches.delete(e.pointerId);
+      if (this.touches.size < 2) this.gesture = null;
+    }
     const p = this.pointer;
     if (!p || p.id !== e.pointerId) return;
     this.pointer = null;
@@ -995,12 +1043,29 @@ export class GameScene {
       return;
     }
     if (p.moved || g.modal) return; // sudrash qurilishga olib kelmaydi
-    if (g.tool === 'build' && this.pendingPlacement) {
+    if (g.tool === 'build' && p.touch && g.buildType) {
+      // telefon: birinchi bosish — arvoh shu joyda; shu joyga ikkinchi bosish — qurish
+      const cell = this.cellFromClient(e.clientX, e.clientY);
+      if (!cell) return;
+      this.hoverCell = cell;
+      const { w, d } = footprintSize(g.buildType, g.buildRotation);
+      const gx = cell.x - Math.floor((w - 1) / 2), gz = cell.z - Math.floor((d - 1) / 2);
+      const key = `${g.buildType}:${gx}:${gz}:${g.buildRotation}`;
+      if (this.armed?.kind === 'build' && this.armed.key === key && performance.now() - this.armed.t < 8000) {
+        this.armed = null;
+        g.placeBuilding(g.buildType, gx, gz, g.buildRotation);
+      } else this.armed = { kind: 'build', key, t: performance.now() };
+    } else if (g.tool === 'build' && this.pendingPlacement) {
       const { type, gx, gz, rot } = this.pendingPlacement;
       g.placeBuilding(type, gx, gz, rot);
     } else if (g.tool === 'demolish') {
       const id = this.pickObject(e.clientX, e.clientY);
-      if (id) g.demolish(id);
+      if (!id) return;
+      if (!p.touch) { g.demolish(id); return; }
+      // telefon: buzishdan oldin tasdiq — shu obyektga ikkinchi bosish
+      this.hoverObjectId = id;
+      if (this.armed?.kind === 'demolish' && this.armed.id === id && performance.now() - this.armed.t < 6000) { this.armed = null; g.demolish(id); }
+      else this.armed = { kind: 'demolish', id, t: performance.now() };
     } else if (g.tool === 'select') {
       const vid = this.pickVehicle(e.clientX, e.clientY);
       if (vid) g.selectVehicle(vid);
@@ -1008,13 +1073,16 @@ export class GameScene {
     }
   };
 
-  private onCancel = () => {
+  private onCancel = (e?: PointerEvent) => {
+    if (e?.pointerType === 'touch') { this.touches.delete(e.pointerId); if (this.touches.size < 2) this.gesture = null; }
     this.pointer = null;
     this.roadStart = null;
     this.roadPath = [];
   };
 
-  private onLeave = () => {
+  private onLeave = (e: PointerEvent) => {
+    // barmoq ko‘tarilganda ham pointerleave keladi — telefonda arvoh va tasdiq belgisi joyida qoladi
+    if (e.pointerType === 'touch') return;
     if (!this.pointer) {
       this.hoverCell = null;
       this.hoverObjectId = null;
@@ -1091,6 +1159,8 @@ export class GameScene {
       this.fpsTime = 0;
     }
 
+    // fon rejimi (Telegram «deactivated» yoki yashirin tab): simulyatsiya va og‘ir render to‘xtaydi
+    if (this.game.tabHidden) { this.raf = requestAnimationFrame(this.loop); return; }
     this.game.update(dt);
 
     // klaviatura bilan kamera (WASD/strelkalar — pan, Q/E — aylantirish)

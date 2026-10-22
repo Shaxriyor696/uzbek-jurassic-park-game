@@ -12,7 +12,9 @@ import { CONSTRUCTION } from './game/construction';
 }
 import { CATALOG } from './game/catalog';
 import { Game } from './game/game';
-import { getBrowserStorage, readSave, SAVE_KEY } from './game/saveStore';
+import { readSave, SAVE_KEY } from './game/saveStore';
+import { bindBackButton, gameStorage, initTelegramShell, telegramReady } from './telegram/telegram';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { GameScene } from './three/scene';
 import { CameraCompass, SupplyPanel, TaskPanel, TopBar } from './ui/Hud';
 import { Modals } from './ui/Modals';
@@ -28,13 +30,36 @@ declare global {
 }
 
 export function App() {
-  const [game] = useState(() => Game.boot(getBrowserStorage()));
+  const [game] = useState(() => Game.boot(gameStorage()));
+  const [fatal, setFatal] = useState<string | null>(null);
   const [scene, setScene] = useState<GameScene | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const s = new GameScene(hostRef.current!, game);
+    let s: GameScene;
+    try {
+      s = new GameScene(hostRef.current!, game);
+    } catch (e) {
+      // WebGL yo‘q yoki xotira yetmadi — tushunarli xato va qayta urinish
+      setFatal(String((e as Error)?.message ?? e));
+      document.getElementById('splash')?.remove();
+      telegramReady();
+      return;
+    }
     setScene(s);
+    // Telegram: kengaytirish, xavfsiz hudud, fon rejimida pauza; «orqaga» — avval oyna/menyu yopiladi
+    initTelegramShell((active) => game.setTabHidden(!active));
+    const unbindBack = bindBackButton(
+      () => !!game.modal || game.tool !== 'select' || !!game.selectedId || !!game.selectedVehicle || game.budgetOpen,
+      () => {
+        if (game.modal) game.openModal(null);
+        else if (game.tool !== 'select') game.cancelTool();
+        else if (game.selectedVehicle) game.selectVehicle(null);
+        else if (game.selectedId) game.select(null);
+        else if (game.budgetOpen) game.toggleBudget();
+      },
+    );
+    telegramReady();
     // ovoz: birinchi bosish/klavishdan keyin yoqiladi; har kadr kamera va o‘yin holatidan
     const audio = startAudio(game);
     const audioHook = (dt: number) => audio.update(s.cam.state, HALF, dt);
@@ -61,7 +86,7 @@ export function App() {
     // Boshqa tab shaharni saqlasa — shu tab ham o‘sha holatni yuklaydi (eski tab yangi saqlashni ustidan yozmasin).
     const onStorage = (e: StorageEvent) => {
       if (e.key !== SAVE_KEY || !e.newValue) return;
-      const r = readSave(getBrowserStorage());
+      const r = readSave(gameStorage());
       if (r.status !== 'ok') return;
       game.applySave(r.data);
       game.emit(true);
@@ -71,16 +96,40 @@ export function App() {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('pagehide', flush);
       s.frameHooks.delete(audioHook);
+      unbindBack();
       stopAudio();
       s.dispose();
     };
   }, [game]);
 
+  if (fatal) return <FatalScreen message={fatal} />;
   return (
-    <GameContext.Provider value={{ game, scene }}>
-      <Shell hostRef={hostRef} />
-    </GameContext.Provider>
+    <ErrorBoundary>
+      <GameContext.Provider value={{ game, scene }}>
+        <Shell hostRef={hostRef} />
+      </GameContext.Provider>
+    </ErrorBoundary>
   );
+}
+
+/** Tushunarli xato va qayta urinish (shahar saqlangan — qayta ochilganda joyidan davom etadi) */
+function FatalScreen({ message }: { message: string }) {
+  return (
+    <div className="fatal" role="alert">
+      <img src={import.meta.env.BASE_URL + 'assets/brand/logo-384.png'} alt="Uzbek Jurassic Park" />
+      <h2>O‘yin ochilmadi</h2>
+      <p>Qurilmangiz 3D grafikani (WebGL) ishga tushira olmadi yoki xotira yetmadi. Shahringiz saqlangan — qayta urinib ko‘ring.</p>
+      <small>{message}</small>
+      <button className="btn-primary" onClick={() => location.reload()}>Qayta urinish</button>
+    </div>
+  );
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
+  state = { error: null as string | null };
+  static getDerivedStateFromError(e: Error) { return { error: e?.message ?? String(e) }; }
+  componentDidCatch(e: Error, info: ErrorInfo) { console.error('[ui]', e, info.componentStack); }
+  render() { return this.state.error ? <FatalScreen message={this.state.error} /> : this.props.children; }
 }
 
 /**
@@ -90,11 +139,16 @@ export function App() {
 function Shell({ hostRef }: { hostRef: RefObject<HTMLDivElement> }) {
   const g = useGame();
   const side = g.budgetOpen || (g.tool === 'select' && !!g.selectedId);
+  // telefon (tor ekran): chap ustun panellari xaritani yopmasin — tugma bilan ochiladi
+  const [panelsOpen, setPanelsOpen] = useState(false);
   return (
-    <div className={'app' + (side ? ' has-side' : '')}>
+    <div className={'app' + (side ? ' has-side' : '') + (panelsOpen ? ' panels-open' : '')}>
       <div ref={hostRef} className="scene-host" />
       <div className="ui-layer">
         <TopBar />
+        <button className="panels-toggle panel" data-ui onClick={() => setPanelsOpen((v) => !v)} aria-expanded={panelsOpen}>
+          {panelsOpen ? '✕ Yopish' : '📋 Panellar'}
+        </button>
         <div className="left-col">
           <TaskPanel />
           <SupplyPanel />

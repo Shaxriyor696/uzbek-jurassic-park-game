@@ -382,10 +382,25 @@ export function InfoPanel() {
         </div>
       )}
       {demolish.ok && <DemolishImpact id={o.id} />}
-      <button className="btn-danger" disabled={!demolish.ok} onClick={() => g.demolish(o.id)} data-testid="info-demolish">
-        <Icon.bulldozer size={18} /> {demolish.ok ? 'Buzish (narx qaytarilmaydi)' : demolish.reason}
-      </button>
+      <DemolishButton id={o.id} ok={demolish.ok} reason={demolish.reason} />
     </div>
+  );
+}
+
+/** Buzish — ikki bosqichli tasdiq (tasodifiy bosishdan himoya, ayniqsa telefonda) */
+function DemolishButton({ id, ok, reason }: { id: string; ok: boolean; reason: string }) {
+  const g = useGame();
+  const [armed, setArmed] = useState(false);
+  useEffect(() => { setArmed(false); }, [id]);
+  useEffect(() => {
+    if (!armed) return;
+    const t = setTimeout(() => setArmed(false), 4000);
+    return () => clearTimeout(t);
+  }, [armed]);
+  return (
+    <button className="btn-danger" disabled={!ok} onClick={() => (armed ? g.demolish(id) : setArmed(true))} data-testid="info-demolish">
+      <Icon.bulldozer size={18} /> {!ok ? reason : armed ? 'Tasdiqlang: buzish (narx qaytarilmaydi)' : 'Buzish'}
+    </button>
   );
 }
 

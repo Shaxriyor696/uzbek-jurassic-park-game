@@ -1,0 +1,18 @@
+# Cloudflare Worker: Telegram bot webhook + shahar saqlash (bepul tarif: Workers + D1)
+name = "ujp-bot"
+main = "worker.mjs"
+compatibility_date = "2024-09-23"
+
+[vars]
+# O'yin manzili (GitHub Pages) — deploydan keyin yoziladi; maxfiy emas
+WEB_APP_URL = ""
+# CORS: o'yin ochiladigan origin (masalan https://<login>.github.io)
+ALLOWED_ORIGIN = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ujp-saves"
+# `npx wrangler d1 create ujp-saves` chiqargan database_id ni shu yerga yozing
+database_id = "00000000-0000-0000-0000-000000000000"
+
+# Maxfiy qiymatlar faylda EMAS: `npx wrangler secret put BOT_TOKEN` va `npx wrangler secret put WEBHOOK_SECRET`
