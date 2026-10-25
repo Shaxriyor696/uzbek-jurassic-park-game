@@ -239,7 +239,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .icon-btn { background: #eef5fb; border: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; padding: 0; color: var(--navy); }
 
 /* ---- Pastki menyu ---- */
-.build-menu { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: calc(100vw - 24px); z-index: 2; }
+.build-menu { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: calc(100 * var(--uvw) - 24px); z-index: 2; }
 .toolbar { display: flex; gap: 6px; padding: 7px; border-radius: 999px; border: 2px solid #cfe9fb; max-width: 100%; overflow-x: auto; scrollbar-width: thin; }
 .tool-btn { flex: none; }
 .tool-btn {
@@ -252,7 +252,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .tool-btn.danger.active { background: linear-gradient(180deg, #ff7a7a, #e04646); }
 .tool-btn.danger.active .tool-icon { color: #e04646; }
 
-.card-tray { padding: 10px 12px 12px; max-width: min(980px, calc(100vw - 24px)); }
+.card-tray { padding: 10px 12px 12px; max-width: min(980px, calc(100 * var(--uvw) - 24px)); }
 .tray-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .tray-title { font-weight: 900; font-size: 17px; color: var(--navy); }
 .tray-hint { flex: 1; font-size: 13px; color: var(--muted); }
@@ -340,7 +340,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 /* ---- Modal ---- */
 .modal-backdrop { position: absolute; inset: 0; background: rgba(15, 42, 77, 0.35); display: grid; place-items: center; z-index: 10; }
-.modal { width: min(560px, calc(100vw - 32px)); padding: 18px 22px 22px;
+.modal { width: min(560px, calc(100 * var(--uvw) - 32px)); padding: 18px 22px 22px;
   /* past oynada ham sig‘sin — ichida aylanadi (sozlamalar va yordam pastdan kesilmasin) */
   max-height: calc(100% - 24px - var(--safe-top, 0px) - var(--safe-bottom, 0px)); overflow-y: auto; overscroll-behavior: contain; }
 .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -402,8 +402,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 @media (max-width: 560px) {
   .logo { display: none; }
   .topbar { left: 12px; right: 12px; }
-  .left-col { width: min(270px, calc(100vw - 32px)); }
-  .right-col { width: min(290px, calc(100vw - 32px)); }
+  .left-col { width: min(270px, calc(100 * var(--uvw) - 32px)); }
+  .right-col { width: min(290px, calc(100 * var(--uvw) - 32px)); }
   .chip-delta { font-size: 12px; padding: 2px 4px; }
 }
 @media (max-height: 800px) {
@@ -505,7 +505,7 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
   .logo { display: none; }
   .topbar { left: 150px; }
   .panels-toggle { top: calc(8px + var(--safe-top, 0px)); }
-  .ui-layer .left-col { top: calc(52px + var(--safe-top, 0px)); width: min(300px, 45vw); }
+  .ui-layer .left-col { top: calc(52px + var(--safe-top, 0px)); width: min(300px, calc(45 * var(--uvw))); }
   .left-col .panel, .left-col .task-panel { width: 100%; }
 }
 @media (max-width: 370px) {
@@ -537,8 +537,8 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
 .ob-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 18px 6px 4px 18px; position: relative; z-index: 1; }
 .ob-body.fwd { animation: ob-in-r 0.28s ease-out; }
 .ob-body.back { animation: ob-in-l 0.28s ease-out; }
-.ob-title { margin: 0; font-size: clamp(24px, 3vw, 37px); line-height: 1.1; font-weight: 900; letter-spacing: -0.5px; color: #0f2147; padding-right: 40px; }
-.ob-text { margin: 0; font-size: clamp(15px, 1.7vw, 20px); line-height: 1.38; font-weight: 600; color: #1d2f5c; max-width: 640px; }
+.ob-title { margin: 0; font-size: clamp(24px, calc(3 * var(--uvw)), 37px); line-height: 1.1; font-weight: 900; letter-spacing: -0.5px; color: #0f2147; padding-right: 40px; }
+.ob-text { margin: 0; font-size: clamp(15px, calc(1.7 * var(--uvw)), 20px); line-height: 1.38; font-weight: 600; color: #1d2f5c; max-width: 640px; }
 .ob-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }
 .ob-card { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 10px 12px; border-radius: 20px;
   background: linear-gradient(180deg, #eef6fe, #f6fbff); border: 1.5px solid #dcebf9; box-shadow: 0 3px 10px rgba(15, 33, 71, 0.06); min-width: 0; }
@@ -550,11 +550,11 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
 .ob-card.scene { padding: 0 0 12px; overflow: hidden; }
 .ob-card.scene .ob-art { border-radius: 18px 18px 0 0; aspect-ratio: 6 / 5; }
 .ob-card.scene .ob-art img { object-fit: cover; -webkit-mask-image: none; mask-image: none; }
-.ob-card figcaption { font-weight: 800; font-size: clamp(13px, 1.35vw, 17px); text-align: center; color: #0f2147; line-height: 1.2; padding: 0 4px; }
+.ob-card figcaption { font-weight: 800; font-size: clamp(13px, calc(1.35 * var(--uvw)), 17px); text-align: center; color: #0f2147; line-height: 1.2; padding: 0 4px; }
 .ob-divider { position: relative; height: 12px; margin: 4px 30px 0; }
 .ob-divider::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; background: linear-gradient(90deg, transparent, #c9dcf2 15%, #c9dcf2 85%, transparent); }
 .ob-divider span { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; transform: translate(-50%, -50%) rotate(45deg); background: #fff; border: 2px solid #9cc2ea; }
-.ob-foot { margin: 0; text-align: center; color: #3d5585; font-size: clamp(13px, 1.3vw, 16px); font-weight: 600; }
+.ob-foot { margin: 0; text-align: center; color: #3d5585; font-size: clamp(13px, calc(1.3 * var(--uvw)), 16px); font-weight: 600; }
 .ob-bottom { grid-column: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 0 18px; flex-wrap: wrap; position: relative; z-index: 1; }
 .ob-progress { display: flex; align-items: center; gap: 8px; }
 .ob-dot { width: 13px; height: 13px; border-radius: 50%; background: #d7e9fb; transition: background 0.2s, transform 0.2s; }
@@ -621,9 +621,7 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
 .credits-link { display: block; margin: 14px 0 0 auto; padding: 2px 0; background: none; border: none; font: inherit; font-size: 11px; color: #9aa9be; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 .credits-link:hover { color: var(--muted); }
 
-/* Dastyor obrazi: baland oynada oyna ustida; pastroq oynada (joy yo‘q) — oynaning o‘ng yonida, xarita ustida
-   (bosishlar xaritaga o‘tadi). Telefon/ixcham rejimda yashirin. */
-@media (max-height: 899px) and (min-width: 861px) and (min-height: 480px) {
-  .dastyor-figure { display: flex; position: absolute; left: calc(100% - 26px); bottom: 0; height: min(250px, 42vh); max-height: none; width: 190px; margin: 0; padding: 0; z-index: 0; }
-  .dastyor-img { height: 165%; }
-}
+
+/* Kompyuter: interfeys ekran o‘lchamiga mos (1920×1050 dan kichik ekranda brauzer zoomi kabi kichrayadi; ui-scale.ts) */
+:root { --uvw: calc(1vw / var(--ui-scale, 1)); }
+.ui-layer { zoom: var(--ui-scale, 1); }

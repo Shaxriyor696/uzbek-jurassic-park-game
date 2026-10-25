@@ -4,6 +4,10 @@ import { App } from './App';
 import { prepareStorage } from './telegram/telegram';
 import './ui/styles.css';
 import { startIntro } from './audio/intro';
+import { initUiScale } from './ui/uiScale';
+
+// kompyuterda interfeys ekranga mos o‘lchamda
+initUiScale();
 
 // Yuklanish ekranidagi intro bo‘kirishi — o‘yin yuklanishini kutmaydi va bloklamaydi
 startIntro();
