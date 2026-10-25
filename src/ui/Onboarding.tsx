@@ -62,13 +62,13 @@ export function Onboarding() {
   // klaviatura bilan ham boshqarish oson bo‘lsin — asosiy tugma fokusda
   useEffect(() => { primary.current?.focus({ preventScroll: true }); }, [page]);
 
+  // tugma ovozi umumiy (bitta bosish — bitta ovoz); yakunda «confirm», o‘tkazishda oynaning «close» ovozi
   const go = (d: 1 | -1) => {
-    uiSound('click');
     setDir(d);
     setPage((x) => Math.max(0, Math.min(PAGES.length - 1, x + d)));
   };
   const close = (finish: boolean) => {
-    uiSound(finish ? 'confirm' : 'close');
+    if (finish) uiSound('confirm');
     g.openModal(null);
   };
 

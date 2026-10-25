@@ -68,12 +68,7 @@ export function Modals() {
             <div><b>Kamera</b><small>Boshlang‘ich ko‘rinishga qaytish (Home).</small></div>
             <button className="btn-ghost" onClick={() => { scene?.resetCamera(); close(); }} data-testid="reset-camera">Qaytarish</button>
           </div>
-          <div className="setting">
-            <div><b>Mualliflar va litsenziyalar</b><small>O‘yindagi tashqi 3D modellar.</small></div>
-            <button className="btn-ghost" onClick={() => g.openModal('credits')} data-testid="open-credits">Ko‘rish</button>
-          </div>
           <SoundSettings />
-          <CityFile />
         </div>
       </Modal>
     );
@@ -115,6 +110,8 @@ export function Modals() {
             <tr><td>Esc</td><td>Rejimdan chiqish / oynani yopish</td></tr>
           </tbody>
         </table>
+        {/* 3D modellar CC-BY-4.0 — muallif va manba ko‘rsatilishi shart; kichik havola */}
+        <button className="credits-link" onClick={() => g.openModal('credits')} data-testid="open-credits">Mualliflar va litsenziyalar</button>
       </Modal>
     );
   }
@@ -127,7 +124,7 @@ export function Modals() {
       return m ? <><span>{m[1]}</span> — <a href={m[2]} target="_blank" rel="noreferrer">{m[2]}</a></> : v?.startsWith('http') ? <a href={v} target="_blank" rel="noreferrer">{v}</a> : <span>{v ?? '—'}</span>;
     };
     return (
-      <Modal title="Mualliflar va litsenziyalar" onClose={() => g.openModal('settings')} testid="credits-modal">
+      <Modal title="Mualliflar va litsenziyalar" onClose={() => g.openModal('help')} testid="credits-modal">
         <div className="credits" data-testid="credits">
           <h3>Yuradigan dinozavr (apatozavr)</h3>
           {c ? (
@@ -230,32 +227,3 @@ function SoundSettings() {
   );
 }
 
-/** Shaharni faylga saqlash / fayldan yuklash (masalan, kompyuterdagi shaharni Telegram ga ko‘chirish) */
-function CityFile() {
-  const g = useGame();
-  const download = () => {
-    const blob = new Blob([g.exportSaveText()], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `uzbek-jurassic-park-shahar-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  };
-  const upload = (f: File | undefined) => {
-    if (!f) return;
-    void f.text().then((raw) => {
-      if (!window.confirm('Fayldagi shahar yuklansinmi? Joriy shahar uning o‘rniga almashadi (avval joriy shaharni faylga saqlab qo‘yishingiz mumkin).')) return;
-      const r = g.importSaveText(raw);
-      if (!r.ok) g.pushToast('Fayl yaroqsiz: ' + (r.error ?? ''), 'error');
-    });
-  };
-  return (
-    <div className="setting">
-      <div><b>Shahar fayli</b><small>Shaharni faylga saqlang yoki fayldan yuklang — boshqa qurilma yoki Telegram ga ko‘chirish uchun.</small></div>
-      <div className="segmented">
-        <button onClick={download} data-testid="export-city">Faylga</button>
-        <label className="file-btn" data-testid="import-city">Fayldan<input type="file" accept="application/json,.json" hidden onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ''; }} /></label>
-      </div>
-    </div>
-  );
-}

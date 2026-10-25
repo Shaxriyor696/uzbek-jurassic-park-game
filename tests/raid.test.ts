@@ -66,6 +66,37 @@ describe('Dinozavrlar: doim harakatda', () => {
   }, 60000);
 });
 
+describe('Dinozavrlar: qotib qolmaydi, yirtqichlar yuguradi', () => {
+  it('har biri ko‘p vaqt harakatda; uzoq qotish yo‘q; T-rex, spinozavr, Alice vaqti-vaqti bilan yuguradi', () => {
+    RAID_CONFIG.enabled = false;
+    const g = Game.boot(null);
+    g.confirmNewCity();
+    const mobile = g.herd.dinos.filter((d) => HERD_BY_TYPE[d.type].mobile);
+    const moving = new Map<string, number>(), still = new Map<string, number>(), maxStill = new Map<string, number>();
+    const prev = new Map(mobile.map((d) => [d.id, { x: d.x, z: d.z, h: d.heading }]));
+    const sprinted = new Set<string>();
+    let n = 0;
+    run(g, 300, () => {
+      n++;
+      for (const d of mobile) {
+        if (d.speed > 0.05) moving.set(d.id, (moving.get(d.id) ?? 0) + 1);
+        const p = prev.get(d.id)!;
+        const s = Math.hypot(d.x - p.x, d.z - p.z) < 0.001 && Math.abs(d.heading - p.h) < 0.001 ? (still.get(d.id) ?? 0) + 0.05 : 0;
+        still.set(d.id, s);
+        maxStill.set(d.id, Math.max(maxStill.get(d.id) ?? 0, s));
+        prev.set(d.id, { x: d.x, z: d.z, h: d.heading });
+        if (d.sprint && d.speed > 0.05) sprinted.add(d.type);
+      }
+    }, 0.05);
+    for (const d of mobile) {
+      expect(moving.get(d.id)! / n, d.id).toBeGreaterThan(0.65);
+      // qisqa dam olish/kuzatish (animatsiya bilan) bo‘lishi mumkin, lekin uzoq qotish yo‘q
+      expect(maxStill.get(d.id)!, d.id).toBeLessThan(9);
+    }
+    for (const t of ['trex', 'spinosaurus', 'alice']) expect(sprinted.has(t), t).toBe(true);
+  }, 180000);
+});
+
 describe('Dinozavrlar: shaharga hujum', () => {
   it('ochiq shaharga kiradi, binoni ishdan chiqaradi; politsiya mashinasi chiqarib yuboradi (limit bilan)', () => {
     const { g, z } = city();

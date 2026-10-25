@@ -34,13 +34,14 @@ export class AudioDirector {
   private onSfx = (e: SfxEvent) => this.ui(e);
   private onClick = (e: Event) => {
     const t = e.target as HTMLElement | null;
-    // faqat interfeys tugmalari (xarita kanvasi emas)
+    // faqat interfeys tugmalari (xarita kanvasi emas). «click» hodisasida — tugmaning o‘z ovozi (open/close/confirm)
+    // bilan bir hodisa ichida; ui() ulardan bittasini (eng muhimini) chaladi, ikki ovoz ketma-ket chiqmaydi
     if (t?.closest('button, [role="tab"], .card') && t.closest('[data-ui]')) this.ui('click');
   };
 
   constructor(private game: Game, readonly engine: AudioEngine) {
     game.sfxListeners.add(this.onSfx);
-    window.addEventListener('pointerdown', this.onClick, { capture: true });
+    window.addEventListener('click', this.onClick, { capture: true });
     this.traffic = engine.loop('traffic');
     this.city = engine.loop('city');
     this.fountains = [engine.loop('fountain'), engine.loop('fountain')];
@@ -248,7 +249,7 @@ export class AudioDirector {
 
   dispose() {
     this.game.sfxListeners.delete(this.onSfx);
-    window.removeEventListener('pointerdown', this.onClick, { capture: true });
+    window.removeEventListener('click', this.onClick, { capture: true });
     if (this.uiTimer) clearTimeout(this.uiTimer);
     for (const s of this.construction.values()) s.voice?.stop(0.05);
     for (const l of this.vehicleVoices.values()) for (const v of l) v.stop(0.05);

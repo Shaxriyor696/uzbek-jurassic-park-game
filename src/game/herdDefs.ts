@@ -222,7 +222,7 @@ export const HERD_DEFS: HerdDef[] = [
     idle: { clip: 'EFS5_time_uniform_116poses', frame: 0 },
     run: { clip: 'EFS5_time_uniform_116poses', speed: 34.86 },
     bakedMotion: { speed: 34.86 },
-    wanderRate: 0.6, travelRate: 0.75, turnRate: 1.1,
+    wanderRate: 0.6, travelRate: 0.75, turnRate: 2.2,
     behave: { wander: 2.5, travel: 3, rest: 0.5, look: 0, follow: 1, watch: 1.2, shore: 0.5 }, restTime: [2, 4], canChase: true, home: 'forest', count: 3,
     limits: 'Faqat yugurish klipi bor: sayrda shu klip sekinlashtirib o‘ynaladi (oyoq qadami tezlikka mos). Tinch turish — statik poza (alohida idle klip yo‘q).',
   },

@@ -104,7 +104,9 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 }
 .left-col { left: 16px; width: 340px; align-items: flex-start; }
 /* ochilgan panellar pastki menyu ostiga kirib ketmasin — ustun ichida aylantiriladi */
-.left-col { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: 8px; }
+.left-col { overflow: visible; padding-bottom: 8px; }
+.left-scroll { flex: 0 1 auto; min-height: 0; width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; pointer-events: auto; }
 .right-col { right: 16px; width: 310px; align-items: flex-end; }
 .col-spacer { flex: 1; min-height: 0; }
 .task-panel {
@@ -189,11 +191,11 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 /* ---- Dastyor ---- */
 /* Rasm faqat bo‘sh qolgan joyni egallaydi (kichrayadi), pufakcha esa ustunning pastida turadi */
-.dastyor { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; }
+.dastyor { position: relative; flex: 1 0 auto; width: 100%; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; }
 /* Dastyor beligacha ko‘rinadi: rasm ramkadan balandroq, pastki (oyoq) qismi kesiladi */
 .dastyor-figure { flex: 1; min-height: 0; max-height: 250px; margin-bottom: -14px; padding-left: 8px; display: flex; align-items: flex-start; overflow: hidden; pointer-events: none; }
 .dastyor-img { height: 185%; width: auto; max-width: none; flex: none; filter: drop-shadow(0 6px 12px rgba(15, 42, 77, 0.35)); pointer-events: none; }
-.dastyor-bubble { position: relative; flex: 0 1 auto; min-height: 0; overflow-y: auto; width: 100%; padding: 14px 16px; }
+.dastyor-bubble { position: relative; flex: none; width: 100%; padding: 14px 16px; }
 .dastyor-name { font-size: 20px; font-weight: 900; color: var(--navy); }
 .dastyor-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .dastyor-cheer { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 3px 10px; border-radius: 999px; background: #e3f7ec; color: var(--ok); font-weight: 900; font-size: 14px; }
@@ -338,7 +340,9 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 
 /* ---- Modal ---- */
 .modal-backdrop { position: absolute; inset: 0; background: rgba(15, 42, 77, 0.35); display: grid; place-items: center; z-index: 10; }
-.modal { width: min(560px, calc(100vw - 32px)); padding: 18px 22px 22px; }
+.modal { width: min(560px, calc(100vw - 32px)); padding: 18px 22px 22px;
+  /* past oynada ham sig‘sin — ichida aylanadi (sozlamalar va yordam pastdan kesilmasin) */
+  max-height: calc(100% - 24px - var(--safe-top, 0px) - var(--safe-bottom, 0px)); overflow-y: auto; overscroll-behavior: contain; }
 .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .modal-head h2 { margin: 0; font-size: 22px; color: var(--navy); }
 .modal p { line-height: 1.4; }
@@ -462,7 +466,6 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
 .fatal h2 { margin: 0; }
 .fatal p { margin: 0; max-width: 420px; line-height: 1.4; }
 .fatal small { opacity: 0.6; max-width: 420px; word-break: break-word; }
-.file-btn { cursor: pointer; display: inline-flex; align-items: center; padding: 6px 12px; }
 
 /* Telefon (tik yoki yotiq): ixcham UI — xarita ko‘proq ko‘rinadi, chap ustun tugma bilan ochiladi */
 .panels-toggle { display: none; }
@@ -613,4 +616,14 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
   .ob-card { padding: 6px 6px 8px; gap: 4px; }
   .ob-btn { min-height: 42px; font-size: 15px; }
   .ob-corner { width: 80px; }
+}
+/* Mualliflar (litsenziya talabi) — yordam oynasi pastida kichik havola */
+.credits-link { display: block; margin: 14px 0 0 auto; padding: 2px 0; background: none; border: none; font: inherit; font-size: 11px; color: #9aa9be; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.credits-link:hover { color: var(--muted); }
+
+/* Dastyor obrazi: baland oynada oyna ustida; pastroq oynada (joy yo‘q) — oynaning o‘ng yonida, xarita ustida
+   (bosishlar xaritaga o‘tadi). Telefon/ixcham rejimda yashirin. */
+@media (max-height: 899px) and (min-width: 861px) and (min-height: 480px) {
+  .dastyor-figure { display: flex; position: absolute; left: calc(100% - 26px); bottom: 0; height: min(250px, 42vh); max-height: none; width: 190px; margin: 0; padding: 0; z-index: 0; }
+  .dastyor-img { height: 165%; }
 }

@@ -53,7 +53,12 @@ export interface HerdDino {
   raidCool?: number;
   /** Hujum qilinayotgan bino */
   raidOn?: string | null;
+  /** Yirtqich yugurib boryapti (sayr/uzoq yo‘l) — maqsadga yetguncha */
+  sprint?: boolean;
 }
+
+/** Yirtqichlarning vaqti-vaqti bilan yugurishi: ehtimol (har yangi sayr/yo‘lda) va tezlik (yurish klipi tezligiga nisbatan) */
+export const SPRINT = { chance: 0.45, walkGaitRate: 2.1 };
 
 /** Shahar hujumi sozlamalari (yagona joy) */
 export const RAID_CONFIG = {
@@ -523,7 +528,8 @@ export class Herd {
         const heading = face ? Math.atan2(face.z - p.z, face.x - p.x) : ang + Math.PI;
         return {
           id, type: def.type, x: p.x, z: p.z, heading, speed: 0, mode: def.mobile ? 'rest' : (face ? 'watch' : 'rest'),
-          timer: 2 + i, target: null, partner: null, cooldown: 15 + i * 3, visited: [], anim: 'idle',
+          // boshida qisqa, har xil (hammasi bir vaqtda qo‘zg‘almasin, lekin uzoq turmasin)
+          timer: 0.5 + i * 0.25, target: null, partner: null, cooldown: 15 + i * 3, visited: [], anim: 'idle',
           phase: { idle: i * 0.7, walk: i * 0.37, run: i * 0.21, look: 0 }, lookIdx: 0, rng: 1234 + i * 977, face,
         };
       }
@@ -613,7 +619,7 @@ export class Herd {
       const o = this.dinos.find((q) => q !== d && this.def(q).mobile && Math.hypot(q.x - d.x, q.z - d.z) < herdRadius(def) + herdRadius(this.def(q)) + 4);
       const t = !movedNow && o && d.mode !== 'stomp' ? (prev?.t ?? 0) + dt : 0;
       this.still.set(d.id, { x: d.x, z: d.z, h: d.heading, t });
-      if (o && t > 2) {
+      if (o && t > 1.2) {
         this.still.set(d.id, { x: d.x, z: d.z, h: d.heading, t: 0 });
         d.avoid = { a: Math.atan2(o.z - d.z, o.x - d.x), t: 12 };
         this.stuck.set(d.id + ':nosep', 3);
@@ -729,7 +735,8 @@ export class Herd {
       case 'watch':
         // shahar chetiga boradi, sekin to‘xtab, shahar tomonga burilib kuzatadi
         if (d.target) {
-          if (this.paths.has(d.id)) { this.move(d, dt, nav, w, def.wanderRate * 0.8); return; }
+          // shahar chetiga: yirtqich ba’zan yugurib boradi
+          if (this.paths.has(d.id)) { const sp = !!d.sprint && def.diet === 'carnivore'; this.move(d, dt, nav, w, sp ? (def.run ? 1 : SPRINT.walkGaitRate) : def.wanderRate * 0.8, sp && !!def.run); return; }
           if (this.pathBudget > 0 && !this.plan(d, nav, d.target)) { this.toRest(d, 2, 4); return; }
           this.settle(d, dt);
           return;
@@ -738,15 +745,18 @@ export class Herd {
         if (d.timer <= 0) this.decide(d, nav, w);
         return;
       case 'wander': case 'travel': {
-        const rate = d.mode === 'travel' ? def.travelRate : def.wanderRate;
+        const sprint = !!d.sprint && def.diet === 'carnivore';
+        // yugurish: klipi bor (raptor) — yugurish klipi to‘liq tezlikda; protsedurali yurish (T-rex va b.) — tezroq qadam
+        const rate = sprint ? (def.run ? 1 : SPRINT.walkGaitRate) : d.mode === 'travel' ? def.travelRate : def.wanderRate;
         if (!this.paths.has(d.id)) {
           if (d.target && this.pathBudget > 0) this.plan(d, nav, d.target);
           else if (!d.target) this.decide(d, nav, w);
           this.settle(d, dt);
-          if (d.timer < -6) this.giveUp(d, nav, w);
+          // yo‘l topilmay qoldi — uzoq kutmaydi, boshqa maqsad
+          if (d.timer < -2) this.giveUp(d, nav, w);
           return;
         }
-        this.move(d, dt, nav, w, rate);
+        this.move(d, dt, nav, w, rate, sprint && !!def.run);
         return;
       }
       case 'follow': {
@@ -820,8 +830,9 @@ export class Herd {
     // katta tana yurib, yoy bo‘ylab buriladi: burilish radiusi tananing radiusidan kichik emas (ω ≤ v / R);
     // to‘xtab turganda — faqat juda sekin, qadam bilan
     const rMin = this.def(d).length * 0.35;
-    // joyida (qadam bilan) burilish ham ~15°/s — juda sekin aylanib, qotib turgandek ko‘rinmasin
-    maxRate = Math.max(Math.min(maxRate, 0.25), Math.min(maxRate, d.speed / rMin));
+    // joyida (qadam bilan) burilish: og‘ir tana ~20°/s; epchil (turnRate ≥ 1, raptor) ~45°/s — to‘siq oldida tez qayriladi
+    const inPlace = this.def(d).turnRate >= 1 ? 0.8 : 0.35;
+    maxRate = Math.max(Math.min(maxRate, inPlace), Math.min(maxRate, d.speed / rMin));
     const wTarget = Math.max(-maxRate, Math.min(maxRate, diff * 1.8));
     const acc = maxRate * 1.4;
     const om = d.omega ?? 0;
@@ -859,7 +870,8 @@ export class Herd {
     const def = this.def(d);
     d.speed = 0;
     const before = d.heading;
-    const diff = this.steer(d, dt, want, def.turnRate * 0.45);
+    // og‘ir dinozavr ham joyida juda sekin aylanmasin (180° ~9 s, aks holda qotib qolgandek ko‘rinadi)
+    const diff = this.steer(d, dt, want, Math.max(def.turnRate * 0.45, 0.35));
     const turn = d.heading - before;
     // joyida burilishda ham oyoqlar kichik qadam tashlaydi (tana qotib aylanmasin); qadam kuchi burilish tezligiga mos
     if (Math.abs(diff) > 0.05 && Math.abs(turn) > 1e-4) {
@@ -957,7 +969,8 @@ export class Herd {
     let vmax = clipGroundSpeed(def, kind) * (kind === 'run' && !run ? rate : run ? 1 : rate) * factor;
     // burilish qancha keskin bo‘lsa, shuncha sekin (dum keng aylanmasin) — bir tekis bog‘liqlik
     // (juda sekinlashsa, burilish ham sekin bo‘lib, dinozavr joyida sudralib aylanayotgandek ko‘rinadi — kamida 60%)
-    vmax *= Math.max(0.6, Math.min(1, 1 - (Math.abs(diff) - 0.4) / 2));
+    // keskin burilishda (yo‘l burchagi) ko‘proq sekinlashadi — burilish radiusi to‘siqqa kirib ketmasin
+    vmax *= Math.max(Math.abs(diff) > 1 ? 0.4 : 0.6, Math.min(1, 1 - (Math.abs(diff) - 0.4) / 2));
     const remain = path.reduce((s, p, i) => s + (i === 0 ? dist : Math.hypot(p.x - path[i - 1].x, p.z - path[i - 1].z)), 0);
     if (remain < 3) vmax *= Math.max(0.35, remain / 3);
     // boshqa dinozavr oldida — sekinlashadi yoki kutadi
@@ -986,7 +999,7 @@ export class Herd {
       if (d.speed === 0) this.turnInPlace(d, dt, want); else d.omega = (d.omega ?? 0) * Math.max(0, 1 - dt * 3);
       const s = (this.stuck.get(d.id) ?? 0) + dt;
       this.stuck.set(d.id, s);
-      if (s > 3) { this.stuck.set(d.id, 0); d.avoid = { a: want, t: 12 }; this.giveUp(d, nav, w); }
+      if (s > 1.5) { this.stuck.set(d.id, 0); d.avoid = { a: want, t: 12 }; this.giveUp(d, nav, w); }
     } else {
       d.speed = d.speed < vmax ? Math.min(vmax, d.speed + accel * dt) : Math.max(vmax, d.speed - accel * 1.3 * dt);
       this.steer(d, dt, want, def.turnRate * (run ? 1.3 : 1));
@@ -1003,7 +1016,7 @@ export class Herd {
         if (big) { this.stuck.set(d.id, 0); d.avoid = { a: Math.atan2(big.z - d.z, big.x - d.x), t: 15 }; this.giveUp(d, nav, w); return; }
         const s = (this.stuck.get(d.id) ?? 0) + dt;
         this.stuck.set(d.id, s);
-        if (s > 2) { this.stuck.set(d.id, 0); d.avoid = { a: want, t: 12 }; this.giveUp(d, nav, w); }
+        if (s > 1.2) { this.stuck.set(d.id, 0); d.avoid = { a: want, t: 12 }; this.giveUp(d, nav, w); }
       } else this.stuck.set(d.id, Math.max(0, (this.stuck.get(d.id) ?? 0) - dt * 0.5));
     }
     this.advanceAnim(d, dt, run);
@@ -1019,9 +1032,15 @@ export class Herd {
     const def = this.def(d), r = herdRadius(def), need = needOf(def);
     const nx = d.x + Math.cos(d.heading) * dist, nz = d.z + Math.sin(d.heading) * dist;
     const cNext = nav.clearance(nx, nz), cNow = nav.clearance(d.x, d.z);
-    // tor joy: torayib borayotgan tomonga — yo‘q; bir xil yoki kengayib borayotgan tomonga — tana bo‘sh bo‘lsa ruxsat
-    // (qurilish sabab tor joyda qolgan dinozavr chiqib keta oladi)
-    if (cNext < need && (cNext < cNow || this.blockedUnder(nx, nz, r, nav) > this.blockedUnder(d.x, d.z, r, nav))) return false;
+    // tor joy: zaxira (need = tana + 1 katak) faqat yo‘l rejalashtirishda; qadam faqat tana haqiqatan to‘siqqa
+    // yaqinlashsa rad etiladi. Aks holda yo‘ldan biroz chetga chiqqan dinozavr zaxira chegarasida har qadami rad
+    // etilib, joyida qotib qolardi (yo‘nalishi o‘zgarmagani uchun burilmasdi ham).
+    if (cNext < need) {
+      // tana to‘siq katagiga kirmaydi (kirib qolgan bo‘lsa — faqat chiqish tomonga)
+      if (this.blockedUnder(nx, nz, r, nav) > this.blockedUnder(d.x, d.z, r, nav)) return false;
+      // markaz to‘siqdan kamida need − 1 masofada (allClear bilan bir xil chegara)
+      if (cNext < need - 1 && cNext < cNow) return false;
+    }
     const overlap = (px: number, pz: number) => {
       let n = 0;
       for (let zz = Math.floor(pz - r); zz <= Math.floor(pz + r); zz++) for (let xx = Math.floor(px - r); xx <= Math.floor(px + r); xx++) {
@@ -1090,18 +1109,19 @@ export class Herd {
     const def = this.def(d);
     if (d.target) { d.visited.push({ ...d.target }); if (d.visited.length > 6) d.visited.shift(); }
     d.target = null;
-    if (d.mode === 'watch') { d.timer = between(d, 4, 8); return; }
+    if (d.mode === 'watch') { d.sprint = false; d.timer = between(d, 3, 6); return; }
     if (d.mode === 'flee' || d.mode === 'chase') { this.endChase(d); return; }
     if (d.mode === 'raid') { d.mode = 'stomp'; d.timer = between(d, RAID_CONFIG.stomp[0], RAID_CONFIG.stomp[1]); return; }
     if (d.mode === 'probe') { d.timer = between(d, 6, 10); return; }
     if (d.mode === 'leave') { d.raidCool = between(d, RAID_CONFIG.coolAfterEvict[0], RAID_CONFIG.coolAfterEvict[1]); d.raidOn = null; this.toRest(d, 0.5, 1.2); return; }
     // yetib keldi — biroz dam/atrofga qarash, keyin yangi qaror
-    if (def.look?.length && rand(d) < 0.5) { d.mode = 'look'; d.lookIdx = Math.floor(rand(d) * def.look.length); d.phase.look = 0; d.timer = between(d, 3, 6); }
+    if (def.look?.length && rand(d) < 0.5) { d.mode = 'look'; d.lookIdx = Math.floor(rand(d) * def.look.length); d.phase.look = 0; d.timer = between(d, 2, 3.5); }
     else this.toRest(d, def.restTime[0] * 0.5, def.restTime[1] * 0.6);
     void nav; void w;
   }
 
   private toRest(d: HerdDino, a: number, b: number) {
+    d.sprint = false;
     d.mode = 'rest';
     d.timer = between(d, a, b);
     d.target = null;
@@ -1115,7 +1135,8 @@ export class Herd {
     if (d.target) { d.visited.push({ ...d.target }); if (d.visited.length > 6) d.visited.shift(); }
     d.target = null;
     if (d.mode === 'chase' || d.mode === 'flee') { this.endChase(d); return; }
-    this.toRest(d, 1.5, 3.5);
+    // qisqa to‘xtash, keyin boshqa yo‘nalish (uzoq turib qolmaydi; dam olishdan keyin yana dam tanlanmaydi)
+    this.toRest(d, 0.4, 1);
     void nav; void w;
   }
 
@@ -1150,7 +1171,10 @@ export class Herd {
     // tez-tez shahar chegarasiga keladi: ochiq joy bo‘lsa — ichkariga, yo‘q bo‘lsa — devor yonida urinadi
     if (RAID_CONFIG.enabled && (d.raidCool ?? 1) <= 0 && w.cityTargets?.length && this.startRaid(d, nav, w, false)) return;
     // kam dam oladi — ko‘proq yuradi
-    const opts: [HerdMode | 'shore', number][] = [['wander', b.wander], ['travel', b.travel], ['rest', b.rest * 0.3], ['look', def.look?.length ? b.look * 0.6 : 0], ['follow', b.follow], ['watch', b.watch], ['shore', b.shore]];
+    // doim harakatda: dam olishdan keyin yana dam olinmaydi (ketma-ket to‘xtashlar uzun qotishga aylanmasin)
+    const wasResting = d.mode === 'rest' || d.mode === 'idle';
+    d.sprint = false;
+    const opts: [HerdMode | 'shore', number][] = [['wander', b.wander], ['travel', b.travel], ['rest', wasResting ? 0 : b.rest * 0.3], ['look', def.look?.length && !wasResting ? b.look * 0.6 : 0], ['follow', b.follow], ['watch', b.watch], ['shore', b.shore]];
     let sum = opts.reduce((s, o) => s + o[1], 0);
     let r = rand(d) * sum;
     let pick: HerdMode | 'shore' = 'rest';
@@ -1158,7 +1182,7 @@ export class Herd {
     void sum;
     d.face = null;
     if (pick === 'rest') { this.toRest(d, def.restTime[0] * 0.5, def.restTime[1] * 0.5); return; }
-    if (pick === 'look') { d.mode = 'look'; d.lookIdx = Math.floor(rand(d) * (def.look?.length ?? 1)); d.phase.look = 0; d.timer = between(d, 3, 6); return; }
+    if (pick === 'look') { d.mode = 'look'; d.lookIdx = Math.floor(rand(d) * (def.look?.length ?? 1)); d.phase.look = 0; d.timer = between(d, 2, 3.5); return; }
     if (pick === 'follow') {
       // faqat o‘z guruhiga (o‘txo‘r yirtqichga ergashmaydi)
       // yaqinda ergashgan bo‘lsa — qayta ergashmaydi (hammasi bir yetakchi atrofida to‘planib turib qolmasin);
@@ -1205,10 +1229,19 @@ export class Herd {
         const dd = Math.hypot(p.x - d.x, p.z - d.z);
         if (dd > 4 && dd < bd && nav.clearance(p.x, p.z) >= needOf(def) && this.reachable(d, p, nav, w)) { bd = dd; best = p; }
       }
-      if (!best) { this.toRest(d, 2, 4); return; }
+      if (!best) {
+        // qiziqish nuqtasi yo‘q — dam olish o‘rniga yaqin atrofda (5–10 katak) bo‘sh joyga yuradi
+        for (let k = 0; k < 12 && !best; k++) {
+          const a = rand(d) * Math.PI * 2, r = between(d, 5, 10);
+          const p = { x: d.x + Math.cos(a) * r, z: d.z + Math.sin(a) * r };
+          if (nav.clearance(p.x, p.z) >= needOf(def) && this.reachable(d, p, nav, w)) best = p;
+        }
+        if (!best) { this.toRest(d, 1, 2); return; }
+      }
       d.mode = 'travel';
       d.target = { ...best };
       d.timer = 0;
+      if (def.diet === 'carnivore' && rand(d) < SPRINT.chance) d.sprint = true;
       this.paths.delete(d.id);
       return;
     }
@@ -1216,6 +1249,8 @@ export class Herd {
     d.mode = pick === 'shore' ? 'wander' : pick;
     d.target = { x: t.x + between(d, -0.8, 0.8), z: t.z + between(d, -0.8, 0.8) };
     d.timer = 0;
+    // yirtqichlar (T-rex, spinozavr, raptor…) tez-tez yugurib o‘tadi
+    if (def.diet === 'carnivore' && (d.mode === 'wander' || d.mode === 'travel' || d.mode === 'watch') && rand(d) < SPRINT.chance) d.sprint = true;
     if (pick === 'watch') d.face = { ...nav.cityCenter };
     this.paths.delete(d.id);
     void w;

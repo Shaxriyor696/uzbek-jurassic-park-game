@@ -161,12 +161,15 @@ function Shell({ hostRef }: { hostRef: RefObject<HTMLDivElement> }) {
           {panelsOpen ? '✕ Yopish' : '📋 Panellar'}
         </button>
         <div className="left-col">
-          <TaskPanel />
-          <SupplyPanel />
-          <EducationPanel />
-          <HealthPanel />
-          <PopulationPanel />
-          <DefensePanel />
+          {/* panellar aylanadi; Dastyor pastda doim to‘liq ko‘rinadi */}
+          <div className="left-scroll">
+            <TaskPanel />
+            <SupplyPanel />
+            <EducationPanel />
+            <HealthPanel />
+            <PopulationPanel />
+            <DefensePanel />
+          </div>
           <Dastyor />
         </div>
         <div className="right-col">
