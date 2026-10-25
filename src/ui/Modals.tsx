@@ -28,7 +28,7 @@ export function Modals() {
 
   if (g.modal === 'onboarding') return <Onboarding />;
 
-  if (g.modal === 'rewards') return <Modal title="Obro‘, bonuslar va jarimalar" onClose={close} testid="rewards-modal"><RewardsView /></Modal>;
+  if (g.modal === 'rewards') return <Modal title="Reyting, bonuslar va jarimalar" onClose={close} testid="rewards-modal"><RewardsView /></Modal>;
 
   if (g.modal === 'settings') {
     const saved = g.lastSavedAt ? new Date(g.lastSavedAt).toLocaleTimeString('uz-UZ') : 'hali saqlanmagan';
@@ -232,7 +232,7 @@ function SoundSettings() {
 }
 
 
-/** Obro‘: qiymat va ta’siri, yutuqlar (bonuslar), oxirgi bonus va jarimalar */
+/** Reyting: qiymat va ta’siri, yutuqlar (bonuslar), oxirgi bonus va jarimalar */
 function RewardsView() {
   const g = useGame();
   const r = g.rewards;
@@ -241,11 +241,11 @@ function RewardsView() {
   return (
     <div className="rewards" data-testid="rewards">
       <div className="rep-box">
-        <div className="rep-head"><b>Obro‘: {r.rep}</b><span>/ 100</span></div>
+        <div className="rep-head"><b>Reyting: {r.rep}</b><span>/ 100</span></div>
         <div className="rep-bar"><span style={{ width: r.rep + '%' }} /></div>
         <small>
           Uy solig‘iga ta’siri: <b className={rate >= 0 ? 'pos' : 'neg'}>{rate > 0 ? '+' : ''}{rate}%</b>
-          {r.lastRepTax ? <> (oxirgi davr: {signed(r.lastRepTax)} so‘m)</> : null}. To‘g‘ri qarorlar obro‘ni oshiradi, xatolar kamaytiradi.
+          {r.lastRepTax ? <> (oxirgi davr: {signed(r.lastRepTax)} so‘m)</> : null}. To‘g‘ri qarorlar reytingni oshiradi, xatolar kamaytiradi.
         </small>
       </div>
       <h3>Bonuslar <small>({r.done.length} / {ACHIEVEMENTS.length})</small></h3>
@@ -256,24 +256,24 @@ function RewardsView() {
             <li key={a.id} className={done ? 'done' : ''}>
               <span className="ach-mark">{done ? '✓' : ''}</span>
               <span className="ach-text"><b>{a.title}</b><small>{a.hint}</small></span>
-              <span className="ach-prize">+{fmt(a.money)} so‘m<br /><small>obro‘ +{a.rep}</small></span>
+              <span className="ach-prize">+{fmt(a.money)} so‘m<br /><small>reyting +{a.rep}</small></span>
             </li>
           );
         })}
       </ul>
       <h3>Takrorlanadigan</h3>
       <ul className="ach-list compact">
-        <li><span className="ach-text"><b>{EVENTS.dinoEvicted.title}</b><small>Politsiya bo‘limi dinozavrni chiqarsa</small></span><span className="ach-prize pos">+{fmt(EVENTS.dinoEvicted.money)} so‘m, obro‘ +{EVENTS.dinoEvicted.rep}</span></li>
-        <li><span className="ach-text"><b>{EVENTS.demolishHome.title}</b><small>Odamlar uysiz qoladi</small></span><span className="ach-prize neg">−{fmt(-EVENTS.demolishHome.money)} so‘m va har kishi −{fmt(-EVENTS.demolishHome.perResident)}, obro‘ {EVENTS.demolishHome.rep}</span></li>
-        <li><span className="ach-text"><b>{EVENTS.unhappy.title}</b><small>Aholi ≥ {EVENTS.unhappy.minPopulation}; har {EVENTS.unhappy.cooldownTicks} davrda ko‘pi bilan bir marta</small></span><span className="ach-prize neg">−{fmt(-EVENTS.unhappy.money)} so‘m, obro‘ {EVENTS.unhappy.rep}</span></li>
-        <li><span className="ach-text"><b>{EVENTS.debt.title}</b><small>Pul manfiy bo‘lsa — har davr</small></span><span className="ach-prize neg">obro‘ {EVENTS.debt.rep}</span></li>
-        <li><span className="ach-text"><b>{EVENTS.dinoBroke.title}</b><small>Shaharni devor bilan himoya qiling</small></span><span className="ach-prize neg">obro‘ {EVENTS.dinoBroke.rep}</span></li>
+        <li><span className="ach-text"><b>{EVENTS.dinoEvicted.title}</b><small>Politsiya bo‘limi dinozavrni chiqarsa</small></span><span className="ach-prize pos">+{fmt(EVENTS.dinoEvicted.money)} so‘m, reyting +{EVENTS.dinoEvicted.rep}</span></li>
+        <li><span className="ach-text"><b>{EVENTS.demolishHome.title}</b><small>Odamlar uysiz qoladi</small></span><span className="ach-prize neg">−{fmt(-EVENTS.demolishHome.money)} so‘m va har kishi −{fmt(-EVENTS.demolishHome.perResident)}, reyting {EVENTS.demolishHome.rep}</span></li>
+        <li><span className="ach-text"><b>{EVENTS.unhappy.title}</b><small>Aholi ≥ {EVENTS.unhappy.minPopulation}; har {EVENTS.unhappy.cooldownTicks} davrda ko‘pi bilan bir marta</small></span><span className="ach-prize neg">−{fmt(-EVENTS.unhappy.money)} so‘m, reyting {EVENTS.unhappy.rep}</span></li>
+        <li><span className="ach-text"><b>{EVENTS.debt.title}</b><small>Pul manfiy bo‘lsa — har davr</small></span><span className="ach-prize neg">reyting {EVENTS.debt.rep}</span></li>
+        <li><span className="ach-text"><b>{EVENTS.dinoBroke.title}</b><small>Shaharni devor bilan himoya qiling</small></span><span className="ach-prize neg">reyting {EVENTS.dinoBroke.rep}</span></li>
       </ul>
       <h3>Oxirgi hodisalar</h3>
       {r.log.length ? (
         <ul className="rew-log" data-testid="rewards-log">
           {r.log.map((l, i) => (
-            <li key={i}><span>{l.title}</span><b className={l.money < 0 || l.rep < 0 ? 'neg' : 'pos'}>{[l.money ? signed(l.money) + ' so‘m' : '', l.rep ? 'obro‘ ' + (l.rep > 0 ? '+' : '') + l.rep : ''].filter(Boolean).join(', ')}</b></li>
+            <li key={i}><span>{l.title}</span><b className={l.money < 0 || l.rep < 0 ? 'neg' : 'pos'}>{[l.money ? signed(l.money) + ' so‘m' : '', l.rep ? 'reyting ' + (l.rep > 0 ? '+' : '') + l.rep : ''].filter(Boolean).join(', ')}</b></li>
           ))}
         </ul>
       ) : <p className="muted">Hali hodisa yo‘q — birinchi yo‘lni quring.</p>}

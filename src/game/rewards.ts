@@ -1,16 +1,16 @@
 /**
  * Bonuslar va jarimalar — yagona sozlama va holat.
  *
- * «Obro‘» (0–100, boshida 50): to‘g‘ri qarorlar oshiradi, xatolar kamaytiradi. Ta’siri — uy solig‘iga ±10% gacha
+ * «Reyting» (0–100, boshida 50): to‘g‘ri qarorlar oshiradi, xatolar kamaytiradi. Ta’siri — uy solig‘iga ±10% gacha
  * (50 da 0). Bonuslar (yutuqlar) har shaharda bir marta; politsiya dinozavrni chiqarishi kabi hodisalar takrorlanadi.
  * Jarimalar: aholisi bor uyni buzish, aholi noroziligi, qarz, dinozavr binoni ishdan chiqarishi.
  * Qiymatlar o‘yin balansi uchun taxminiy (uy 500–5 000, yo‘l 100 so‘m).
  */
 
-/** false — bonus/jarima/obro‘ ta’siri yo‘q (faqat budjet formulalarini aniq tekshiradigan eski sinovlar uchun; o‘yinchi uchun doim true) */
+/** false — bonus/jarima/reyting ta’siri yo‘q (faqat budjet formulalarini aniq tekshiradigan eski sinovlar uchun; o‘yinchi uchun doim true) */
 export const REWARDS_CONFIG = { enabled: true };
 
-export const REP = { START: 50, MIN: 0, MAX: 100, /** obro‘ 100 → uy solig‘i +10%, 0 → −10% */ TAX_EFFECT: 0.1 };
+export const REP = { START: 50, MIN: 0, MAX: 100, /** reyting 100 → uy solig‘i +10%, 0 → −10% */ TAX_EFFECT: 0.1 };
 
 export interface RewardCtx {
   population: number;
@@ -70,7 +70,7 @@ export interface RewardState {
   unhappyCool: number;
   /** Oxirgi hodisalar (eng yangisi boshida) */
   log: RewardLogItem[];
-  /** Oxirgi davrdagi obro‘ ta’siri (so‘m) */
+  /** Oxirgi davrdagi reyting ta’siri (so‘m) */
   lastRepTax: number;
 }
 
@@ -78,7 +78,7 @@ export const initialRewards = (): RewardState => ({ rep: REP.START, done: [], ha
 
 export const clampRep = (r: number) => Math.max(REP.MIN, Math.min(REP.MAX, Math.round(r)));
 
-/** Obro‘ning uy solig‘iga ta’siri (ulush): 50 → 0, 100 → +0.1, 0 → −0.1 */
+/** Reytingning uy solig‘iga ta’siri (ulush): 50 → 0, 100 → +0.1, 0 → −0.1 */
 export const repTaxRate = (rep: number) => ((clampRep(rep) - 50) / 50) * REP.TAX_EFFECT;
 
 /** Saqlangan qiymatni tekshirib tiklash (eski saqlashda yo‘q — boshlang‘ich holat) */

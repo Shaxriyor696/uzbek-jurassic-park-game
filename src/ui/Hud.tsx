@@ -41,7 +41,7 @@ export function TopBar() {
           <Icon.smile />
           <span className="chip-value">{g.happiness}%</span>
         </div>
-        <button className="chip chip-btn panel-dark rep-chip" title="Obro‘ — bonuslar va jarimalar" aria-label="Obro‘: bonuslar va jarimalar"
+        <button className="chip chip-btn panel-dark rep-chip" title="Reyting — bonuslar va jarimalar" aria-label="Reyting: bonuslar va jarimalar"
           onClick={() => g.openModal('rewards')} data-testid="reputation">
           <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" fill="#ffc83d" stroke="#d99a00" strokeWidth="1.2" strokeLinejoin="round" /></svg>
           <span className="chip-value">{g.rewards.rep}</span>

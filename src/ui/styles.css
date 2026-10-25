@@ -626,7 +626,7 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
 :root { --uvw: calc(1vw / var(--ui-scale, 1)); }
 .ui-layer { zoom: var(--ui-scale, 1); }
 
-/* Obro‘, bonuslar va jarimalar */
+/* Reyting, bonuslar va jarimalar */
 .rewards h3 { margin: 14px 0 6px; font-size: 16px; color: var(--navy); }
 .rewards h3 small { color: var(--muted); font-weight: 700; }
 .rep-box { padding: 12px 14px; border-radius: 14px; background: #f3f8ff; border: 1px solid #dbe8f6; }

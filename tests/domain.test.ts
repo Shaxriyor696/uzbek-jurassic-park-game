@@ -41,10 +41,10 @@ function newGame() {
   return { g, s };
 }
 
-describe('Bonuslar, jarimalar va obro‘', () => {
+describe('Bonuslar, jarimalar va reyting', () => {
   beforeEach(() => { REWARDS_CONFIG.enabled = true; });
   afterEach(() => { REWARDS_CONFIG.enabled = false; });
-  it('birinchi ko‘cha: darhol bir marta bonus (pul + obro‘); takror yo‘lda yo‘q', () => {
+  it('birinchi ko‘cha: darhol bir marta bonus (pul + reyting); takror yo‘lda yo‘q', () => {
     const g = Game.boot(new MemStorage());
     const m0 = g.money, r0 = g.rewards.rep;
     const res = g.buildRoad(manhattanPath({ x: 14, z: 16 }, { x: 18, z: 16 }));
@@ -58,13 +58,13 @@ describe('Bonuslar, jarimalar va obro‘', () => {
     expect(g.rewards.log[0].title).toBe('Birinchi ko‘cha');
   });
 
-  it('obro‘ uy solig‘iga ta’sir qiladi (50 → 0, 100 → +10%, 0 → −10%)', () => {
+  it('reyting uy solig‘iga ta’sir qiladi (50 → 0, 100 → +10%, 0 → −10%)', () => {
     expect(repTaxRate(50)).toBe(0);
     expect(repTaxRate(100)).toBeCloseTo(0.1);
     expect(repTaxRate(0)).toBeCloseTo(-0.1);
   });
 
-  it('aholisi bor uy buzilsa — jarima (kishi soniga qarab) va obro‘ pasayadi; bo‘sh uy — jarima yo‘q', () => {
+  it('aholisi bor uy buzilsa — jarima (kishi soniga qarab) va reyting pasayadi; bo‘sh uy — jarima yo‘q', () => {
     const { g } = newGame();
     const house = g.list.find((o) => CATALOG[o.type].kind === 'house' && !o.build)!;
     house.residents = 6;
@@ -86,7 +86,7 @@ describe('Bonuslar, jarimalar va obro‘', () => {
     expect(n).toBe(2);
   });
 
-  it('eski saqlash (rewards yo‘q): bajarilganlar jimgina belgilanadi — birdan pul tushmaydi; saqlash/yuklash obro‘ni tiklaydi', () => {
+  it('eski saqlash (rewards yo‘q): bajarilganlar jimgina belgilanadi — birdan pul tushmaydi; saqlash/yuklash reytingni tiklaydi', () => {
     const s = new MemStorage();
     const g = Game.boot(s);
     g.resetToNewCity(); // tayyor mahalla — yo‘llar bor

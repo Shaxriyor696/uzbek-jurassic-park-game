@@ -106,7 +106,7 @@ export class Game {
   /** Bir martalik maslahatlar (saqlanadi) */
   /** onboarding — Dastyor tanishtiruvi ko‘rilgan/o‘tkazilgan (yangi shaharda false) */
   hints = { construction: false, arrival: false, gateAuto: true, onboarding: true };
-  /** Bonuslar, jarimalar va obro‘ */
+  /** Bonuslar, jarimalar va reyting */
   rewards: RewardState = initialRewards();
   /** Tanishtiruv sozlamalardan qayta ko‘rilmoqda — tugaganda hech narsa o‘zgarmaydi */
   onboardingReplay = false;
@@ -1009,7 +1009,7 @@ export class Game {
       this.arrivedSinceTick = 0;
     }
     this.money += report.net;
-    // obro‘ ta’siri: uy solig‘iga ±10% gacha (oldingi davr soliq hisobidan)
+    // reyting ta’siri: uy solig‘iga ±10% gacha (oldingi davr soliq hisobidan)
     const houseTax = this.budget.lines.find((l) => l.id === 'houseTax')?.amount ?? 0;
     this.rewards.lastRepTax = REWARDS_CONFIG.enabled ? Math.round(houseTax * repTaxRate(this.rewards.rep)) : 0;
     this.money += this.rewards.lastRepTax;
@@ -1031,7 +1031,7 @@ export class Game {
 
   // ---------- bonuslar va jarimalar ----------
 
-  /** Bonus (+) yoki jarima (−): pul, obro‘, jurnal, xabar va ovoz */
+  /** Bonus (+) yoki jarima (−): pul, reyting, jurnal, xabar va ovoz */
   private grant(title: string, money: number, rep: number, prefix = money >= 0 && rep >= 0 ? 'Bonus' : 'Jarima') {
     if (!REWARDS_CONFIG.enabled) return;
     this.money += money;
@@ -1039,7 +1039,7 @@ export class Game {
     r.rep = clampRep(r.rep + rep);
     r.log.unshift({ t: this.tickCount, title, money, rep });
     if (r.log.length > 12) r.log.length = 12;
-    const parts = [money ? `${money > 0 ? '+' : '−'}${fmt(Math.abs(money))} so‘m` : '', rep ? `obro‘ ${rep > 0 ? '+' : '−'}${Math.abs(rep)}` : ''].filter(Boolean).join(', ');
+    const parts = [money ? `${money > 0 ? '+' : '−'}${fmt(Math.abs(money))} so‘m` : '', rep ? `reyting ${rep > 0 ? '+' : '−'}${Math.abs(rep)}` : ''].filter(Boolean).join(', ');
     this.pushToast(`${prefix}: ${title} (${parts})`, money >= 0 && rep >= 0 ? 'ok' : 'error');
     this.sfx(money >= 0 && rep >= 0 ? 'task' : 'error');
     this.scheduleAutosave();
@@ -1084,7 +1084,7 @@ export class Game {
     r.unhappyCool = Math.max(0, r.unhappyCool - 1);
     const U = EVENTS.unhappy;
     if (pop >= U.minPopulation && happy < 30 && r.unhappyCool === 0) { r.unhappyCool = U.cooldownTicks; this.grant(U.title, U.money, U.rep); }
-    // qarz: har davr obro‘ kamayadi (xabar faqat qarzga tushgan davrda — har 10 soniyada takrorlanmaydi)
+    // qarz: har davr reyting kamayadi (xabar faqat qarzga tushgan davrda — har 10 soniyada takrorlanmaydi)
     if (this.money < 0) {
       const first = !r.log.length || r.log[0].title !== EVENTS.debt.title;
       if (first) this.grant(EVENTS.debt.title, 0, EVENTS.debt.rep);
@@ -1344,7 +1344,7 @@ export class Game {
     this.occ.remove(o);
     if (this.selectedId === id) this.selectedId = null;
     this.sfx('demolish');
-    // aholisi bor uyni buzish — odamlar uysiz qoladi: jarima va obro‘ pasayadi
+    // aholisi bor uyni buzish — odamlar uysiz qoladi: jarima va reyting pasayadi
     if (evicted > 0) { const E = EVENTS.demolishHome; this.grant(`${E.title} (${evicted} kishi)`, E.money + E.perResident * evicted, E.rep); }
     if (o.type === 'himoya_darvoza') {
       // darvoza buzilsa yo‘l uzilmaydi: o‘rta katakda yo‘l qoladi (bepul)
