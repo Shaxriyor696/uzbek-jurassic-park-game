@@ -25,10 +25,12 @@ export function TopBar() {
         <img className="logo-img" src={assetUrl('assets/brand/logo-384.png')} alt="Uzbek Jurassic Park" draggable={false} />
       </div>
       <div className="topbar" data-ui>
-        <button className={'chip chip-btn panel-dark' + (g.money < 0 ? ' debt' : '') + (g.budgetOpen ? ' open' : '')} title="Mablag‘ — shahar budjetini ochish"
+        <button className={'chip chip-btn panel-dark' + (g.money < 0 ? ' debt' : '') + (g.budgetOpen ? ' open' : '')} title={`Mablag‘: ${fmt(g.money)} — shahar budjetini ochish`}
           aria-label="Shahar budjeti" aria-expanded={g.budgetOpen} onClick={() => g.toggleBudget()} data-testid="money">
           <Icon.coin />
-          <span className="chip-value">{fmt(g.money)}</span>
+          <span className="chip-value money-full">{fmt(g.money)}</span>
+          {/* tor telefonda qisqa (500K) — yuqori qator sig‘sin */}
+          <span className="chip-value money-short">{shortMoney(g.money)}</span>
           {g.money < 0 && <span className="chip-tag">Qarz</span>}
         </button>
         <div className="chip panel-dark" title="Aholi" data-testid="population">
@@ -39,6 +41,11 @@ export function TopBar() {
           <Icon.smile />
           <span className="chip-value">{g.happiness}%</span>
         </div>
+        <button className="chip chip-btn panel-dark rep-chip" title="Obro‘ — bonuslar va jarimalar" aria-label="Obro‘: bonuslar va jarimalar"
+          onClick={() => g.openModal('rewards')} data-testid="reputation">
+          <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" fill="#ffc83d" stroke="#d99a00" strokeWidth="1.2" strokeLinejoin="round" /></svg>
+          <span className="chip-value">{g.rewards.rep}</span>
+        </button>
         <button className="chip chip-btn panel-dark tick-chip" title={`Hisob davri ${g.tickCount} (har ${TICK_SECONDS} soniya) — budjetni ochish`}
           aria-label="Davriy sof natija" onClick={() => g.toggleBudget()} data-testid="tick">
           <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
@@ -61,6 +68,14 @@ export function TopBar() {
       {g.autosaveBlocked && <div className="warn-badge" data-ui>{g.autosaveBlockReason ?? 'Avtosaqlash o‘chiq'}</div>}
     </>
   );
+}
+
+/** Qisqa summa: 500K, 1,2M (tor ekran uchun) */
+export function shortMoney(n: number): string {
+  const a = Math.abs(n), s = n < 0 ? '−' : '';
+  if (a >= 1e6) return s + (a / 1e6).toFixed(a >= 1e7 ? 0 : 1).replace('.', ',') + 'M';
+  if (a >= 1e4) return s + Math.round(a / 1e3) + 'K';
+  return s + fmt(a);
 }
 
 /** +120 / −873 / 0 ko‘rinishi */

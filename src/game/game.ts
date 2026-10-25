@@ -15,6 +15,7 @@ import { CIVIC_CONFIG } from './civicDefs';
 import { bodyClear, patrolPath, setDinoLayout, spawnOnPath, DINO_SPECS, dinoValid, NATURE_RING, NATURE_ZONE, findZone, reservedCells, spawnDino, stepDino, type DinoProfile, type DinoState } from './dino';
 import { footprintCells } from './grid';
 import { Herd, isHerdDino } from './herd';
+import { ACHIEVEMENTS, clampRep, EVENTS, initialRewards, readRewards, repTaxRate, REWARDS_CONFIG, type RewardCtx, type RewardState } from './rewards';
 import { buildProgress, needsConstruction, newBuild } from './construction';
 import { computeStatuses as computeStatusesFor } from './utilities';
 import { checkGate, DEFENSE_STATUS_TEXT, evaluateDefense, gateCenter, pocketSet, planWall, stepGate, terrainPassMask, type Cell, type DefenseEval, type WallPlan } from './defense';
@@ -57,7 +58,7 @@ export interface Toast {
 /** Qurilma darajasidagi belgi (shahar saqlashidan alohida) */
 export const ONBOARDING_SEEN_KEY = 'ujp.onboarding.seen';
 
-export type ModalKind = null | 'settings' | 'confirmNew' | 'help' | 'invalidSave' | 'credits' | 'onboarding';
+export type ModalKind = null | 'settings' | 'confirmNew' | 'help' | 'invalidSave' | 'credits' | 'onboarding' | 'rewards';
 
 export const DEFAULT_CAMERA: CameraState = { targetX: -6.5, targetZ: -0.5, azimuth: 0.55, polar: 0.74, distance: 21 };
 export const AUTOSAVE_DEBOUNCE_MS = 500;
@@ -105,6 +106,8 @@ export class Game {
   /** Bir martalik maslahatlar (saqlanadi) */
   /** onboarding — Dastyor tanishtiruvi ko‘rilgan/o‘tkazilgan (yangi shaharda false) */
   hints = { construction: false, arrival: false, gateAuto: true, onboarding: true };
+  /** Bonuslar, jarimalar va obro‘ */
+  rewards: RewardState = initialRewards();
   /** Tanishtiruv sozlamalardan qayta ko‘rilmoqda — tugaganda hech narsa o‘zgarmaydi */
   onboardingReplay = false;
   /** Tanishtiruv birinchi marta tugadi — UI Dastyor topshirig‘ini ko‘rsatadi (telefonda panellar ochiladi) */
@@ -233,6 +236,7 @@ export class Game {
     this.civic = initialCivic();
     this.dinos = [];
     this.hints = { construction: false, arrival: false, gateAuto: true, onboarding: false };
+    this.rewards = initialRewards();
     this.traffic.load(undefined, this.objects);
     this.selectedVehicle = null;
     this.defenseChecked = false;
@@ -269,6 +273,7 @@ export class Game {
     this.dinos = structuredClone(d.creatures?.dinos ?? []);
     // eski saqlashlarda maydon yo‘q — tanishtiruv majburan ochilmaydi
     this.hints = { construction: d.hints?.construction === true, arrival: d.hints?.arrival === true, gateAuto: true, onboarding: d.hints?.onboarding !== false };
+    this.rewards = readRewards(d.rewards);
     this.defenseChecked = d.defense?.checked === true;
     this.selectedVehicle = null;
     this.defenseSeen = null;
@@ -304,6 +309,8 @@ export class Game {
     this.ensureTerrain();
     this.ensureDino();
     this.ensureHerd((d.creatures?.herd ?? []).filter(isHerdDino));
+    // bonus tizimidan oldingi shahar: allaqachon bajarilganlar jimgina belgilanadi (birdan ko‘p pul tushmaydi)
+    if (!d.rewards) { const ctx = this.rewardCtx(); this.rewards.done = ACHIEVEMENTS.filter((a) => a.done(ctx)).map((a) => a.id); }
   }
 
   private herdWorld() {
@@ -364,6 +371,7 @@ export class Game {
       }
     }
     if (!broke) return;
+    if (REWARDS_CONFIG.enabled) for (const _ of broke) { this.rewards.rep = clampRep(this.rewards.rep + EVENTS.dinoBroke.rep); this.rewards.log.unshift({ t: this.tickCount, title: EVENTS.dinoBroke.title, money: 0, rep: EVENTS.dinoBroke.rep }); this.rewards.log.length = Math.min(this.rewards.log.length, 12); }
     for (const o of broke) this.pushToast(isDefense(o.type) ? `Dinozavr ${CATALOG[o.type].name.toLowerCase()}ni buzdi — chegarada ochiq joy! Ta’mirlang.` : `Dinozavr «${CATALOG[o.type].name}»ni ishdan chiqardi — ta’mirlash kerak`, 'error');
     this.recompute();
     this.scheduleAutosave();
@@ -412,7 +420,7 @@ export class Game {
       intruders: this.herd.dinos.filter((d) => d.mode !== 'leave' && this.inCityArea(d.x, d.z)).map((d) => ({ id: d.id, x: d.x, z: d.z })),
       stations: this.active.filter((o) => isSecurity(o.type) && this.statuses.get(o.id)?.active),
       // tashqari: binolar hududidan kamida 5 katak narida
-      evict: (id) => { if (this.herd.evict(id, (x, z) => !this.inCityArea(x - 5, z) && !this.inCityArea(x + 5, z) && !this.inCityArea(x, z - 5) && !this.inCityArea(x, z + 5) && !this.inCityArea(x, z))) this.pushToast('Politsiya dinozavrni shahardan chiqarmoqda', 'info'); },
+      evict: (id) => { if (this.herd.evict(id, (x, z) => !this.inCityArea(x - 5, z) && !this.inCityArea(x + 5, z) && !this.inCityArea(x, z - 5) && !this.inCityArea(x, z + 5) && !this.inCityArea(x, z))) { this.pushToast('Politsiya dinozavrni shahardan chiqarmoqda', 'info'); this.grant(EVENTS.dinoEvicted.title, EVENTS.dinoEvicted.money, EVENTS.dinoEvicted.rep); } },
     };
   }
 
@@ -809,6 +817,7 @@ export class Game {
       creatures: { dinos: structuredClone(this.dinos), herd: this.herd.serialize() },
       terrain: this.terrain ? structuredClone(this.terrain) : undefined,
       hints: { ...this.hints },
+      rewards: structuredClone(this.rewards),
       defense: { checked: this.defenseChecked },
       migration: this.traffic.save(),
       settings: { ...this.settings },
@@ -1000,6 +1009,10 @@ export class Game {
       this.arrivedSinceTick = 0;
     }
     this.money += report.net;
+    // obro‘ ta’siri: uy solig‘iga ±10% gacha (oldingi davr soliq hisobidan)
+    const houseTax = this.budget.lines.find((l) => l.id === 'houseTax')?.amount ?? 0;
+    this.rewards.lastRepTax = REWARDS_CONFIG.enabled ? Math.round(houseTax * repTaxRate(this.rewards.rep)) : 0;
+    this.money += this.rewards.lastRepTax;
     // qurilish xarajati jurnali: o‘tgan davr yopiladi
     this.civic.construction.lastPeriod = this.civic.construction.period;
     this.civic.construction.period = 0;
@@ -1012,7 +1025,72 @@ export class Game {
     this.checkEduTasks();
     this.checkHealthTask();
     this.checkRule();
+    this.checkRewards(report.net + this.rewards.lastRepTax);
     this.scheduleAutosave();
+  }
+
+  // ---------- bonuslar va jarimalar ----------
+
+  /** Bonus (+) yoki jarima (−): pul, obro‘, jurnal, xabar va ovoz */
+  private grant(title: string, money: number, rep: number, prefix = money >= 0 && rep >= 0 ? 'Bonus' : 'Jarima') {
+    if (!REWARDS_CONFIG.enabled) return;
+    this.money += money;
+    const r = this.rewards;
+    r.rep = clampRep(r.rep + rep);
+    r.log.unshift({ t: this.tickCount, title, money, rep });
+    if (r.log.length > 12) r.log.length = 12;
+    const parts = [money ? `${money > 0 ? '+' : '−'}${fmt(Math.abs(money))} so‘m` : '', rep ? `obro‘ ${rep > 0 ? '+' : '−'}${Math.abs(rep)}` : ''].filter(Boolean).join(', ');
+    this.pushToast(`${prefix}: ${title} (${parts})`, money >= 0 && rep >= 0 ? 'ok' : 'error');
+    this.sfx(money >= 0 && rep >= 0 ? 'task' : 'error');
+    this.scheduleAutosave();
+  }
+
+  private rewardCtx(): RewardCtx {
+    let userRoads = 0, houses = 0, suppliedHouses = 0, activeBusinesses = 0;
+    for (const o of this.active) {
+      const kind = CATALOG[o.type].kind;
+      if (o.type === 'road' && o.userPlaced) userRoads++;
+      const s = this.statuses.get(o.id);
+      const ok = !!s && s.road && s.power && s.water;
+      if (kind === 'house') { houses++; if (ok) suppliedHouses++; }
+      else if (kind === 'business' && ok) activeBusinesses++;
+    }
+    return {
+      population: this.population, happiness: this.happiness, userRoads, houses, suppliedHouses, activeBusinesses,
+      defenseClosed: this.defense.status === 'closed', happyStreak: this.rewards.happyStreak, profitStreak: this.rewards.profitStreak,
+    };
+  }
+
+  /** Yutuqlar (har shaharda bir marta) */
+  evalAchievements() {
+    if (!REWARDS_CONFIG.enabled) return;
+    const r = this.rewards;
+    let ctx: RewardCtx | null = null;
+    for (const a of ACHIEVEMENTS) {
+      if (r.done.includes(a.id)) continue;
+      ctx ??= this.rewardCtx();
+      if (!a.done(ctx)) continue;
+      r.done.push(a.id);
+      this.grant(a.title, a.money, a.rep);
+    }
+  }
+
+  /** Davr oxirida: ketma-ketliklar, norozilik va qarz jarimasi, yutuqlar */
+  private checkRewards(net: number) {
+    if (!REWARDS_CONFIG.enabled) return;
+    const r = this.rewards, pop = this.population, happy = this.happiness;
+    r.happyStreak = pop >= 10 && happy >= 80 ? r.happyStreak + 1 : 0;
+    r.profitStreak = net > 0 ? r.profitStreak + 1 : 0;
+    r.unhappyCool = Math.max(0, r.unhappyCool - 1);
+    const U = EVENTS.unhappy;
+    if (pop >= U.minPopulation && happy < 30 && r.unhappyCool === 0) { r.unhappyCool = U.cooldownTicks; this.grant(U.title, U.money, U.rep); }
+    // qarz: har davr obro‘ kamayadi (xabar faqat qarzga tushgan davrda — har 10 soniyada takrorlanmaydi)
+    if (this.money < 0) {
+      const first = !r.log.length || r.log[0].title !== EVENTS.debt.title;
+      if (first) this.grant(EVENTS.debt.title, 0, EVENTS.debt.rep);
+      else { r.rep = clampRep(r.rep + EVENTS.debt.rep); r.log[0].rep += EVENTS.debt.rep; }
+    }
+    this.evalAchievements();
   }
 
   // ---------- qurilish ----------
@@ -1239,6 +1317,7 @@ export class Game {
     }
     this.recompute();
     this.pushToast(bridge ? `Ko‘prik qurildi: ${res.newCells.length} katak (−${fmt(res.cost)})` : `${res.newCells.length} ta yo‘l katagi qurildi (−${fmt(res.cost)})`, 'ok');
+    this.evalAchievements(); // «Birinchi ko‘cha» — darhol
     this.scheduleAutosave();
     this.emit(true);
     return res;
@@ -1260,10 +1339,13 @@ export class Game {
       return false;
     }
     const o = this.objects.get(id)!;
+    const evicted = !o.build && CATALOG[o.type].kind === 'house' ? o.residents : 0;
     this.objects.delete(id);
     this.occ.remove(o);
     if (this.selectedId === id) this.selectedId = null;
     this.sfx('demolish');
+    // aholisi bor uyni buzish — odamlar uysiz qoladi: jarima va obro‘ pasayadi
+    if (evicted > 0) { const E = EVENTS.demolishHome; this.grant(`${E.title} (${evicted} kishi)`, E.money + E.perResident * evicted, E.rep); }
     if (o.type === 'himoya_darvoza') {
       // darvoza buzilsa yo‘l uzilmaydi: o‘rta katakda yo‘l qoladi (bepul)
       const c = gateCenter(o);

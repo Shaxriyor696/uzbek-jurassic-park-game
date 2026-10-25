@@ -47,6 +47,8 @@ export interface SaveData {
   creatures?: { dinos?: DinoState[]; dino?: DinoState | null; herd?: HerdDino[] };
   /** 8-sxemadan: bir martalik maslahatlar */
   hints?: { construction: boolean; arrival?: boolean; gateAuto?: boolean; onboarding?: boolean };
+  /** Bonuslar, jarimalar va obro‘ (rewards.ts) — eski saqlashda yo‘q */
+  rewards?: unknown;
   /** 9-sxemadan: tog‘lar (yo‘q bo‘lsa o‘yin bo‘sh joyga yaratadi va saqlaydi) */
   terrain?: TerrainState;
   /** Shahar himoyasi: «Himoyani tekshirish» topshirig‘i bajarilgan (eski saqlashlarda yo‘q) */

@@ -18,6 +18,7 @@ import { CIVIC, CIVIC_CONFIG } from '../src/game/civicDefs';
 import { DINO, DINO_SPECS, type DinoProfile } from '../src/game/dino';
 import { MOVE_IN_PER_TICK, OUTAGE_GRACE_TICKS, START_MONEY } from '../src/game/simulation';
 import { initialTutorial } from '../src/game/tutorial';
+import { repTaxRate, REWARDS_CONFIG } from '../src/game/rewards';
 import { computeBudget } from '../src/game/budget';
 import { buildProgress, CONSTRUCTION, PHASES } from '../src/game/construction';
 import { createPresetObjects } from '../src/game/presets';
@@ -30,12 +31,76 @@ class MemStorage implements KeyValueStorage {
 }
 
 /** Boshlang‘ich mahalla bilan (test fixture) — haqiqiy birinchi ochilish bo‘sh shahar, pastdagi testga qarang */
+// budjet formulalari so‘mma-so‘m tekshiriladi — bonus tizimi alohida «Bonuslar…» blokida yoqiladi
+REWARDS_CONFIG.enabled = false;
+
 function newGame() {
   const s = new MemStorage();
   const g = Game.boot(s);
   g.resetToNewCity();
   return { g, s };
 }
+
+describe('Bonuslar, jarimalar va obro‘', () => {
+  beforeEach(() => { REWARDS_CONFIG.enabled = true; });
+  afterEach(() => { REWARDS_CONFIG.enabled = false; });
+  it('birinchi ko‘cha: darhol bir marta bonus (pul + obro‘); takror yo‘lda yo‘q', () => {
+    const g = Game.boot(new MemStorage());
+    const m0 = g.money, r0 = g.rewards.rep;
+    const res = g.buildRoad(manhattanPath({ x: 14, z: 16 }, { x: 18, z: 16 }));
+    expect(res.ok).toBe(true);
+    expect(g.rewards.done).toContain('firstRoad');
+    expect(g.money).toBe(m0 - res.cost + 3000);
+    expect(g.rewards.rep).toBe(r0 + 2);
+    const m1 = g.money;
+    const res2 = g.buildRoad(manhattanPath({ x: 18, z: 17 }, { x: 18, z: 19 }));
+    expect(g.money).toBe(m1 - res2.cost);
+    expect(g.rewards.log[0].title).toBe('Birinchi ko‘cha');
+  });
+
+  it('obro‘ uy solig‘iga ta’sir qiladi (50 → 0, 100 → +10%, 0 → −10%)', () => {
+    expect(repTaxRate(50)).toBe(0);
+    expect(repTaxRate(100)).toBeCloseTo(0.1);
+    expect(repTaxRate(0)).toBeCloseTo(-0.1);
+  });
+
+  it('aholisi bor uy buzilsa — jarima (kishi soniga qarab) va obro‘ pasayadi; bo‘sh uy — jarima yo‘q', () => {
+    const { g } = newGame();
+    const house = g.list.find((o) => CATALOG[o.type].kind === 'house' && !o.build)!;
+    house.residents = 6;
+    const m0 = g.money, r0 = g.rewards.rep;
+    g.demolish(house.id);
+    expect(g.money).toBe(m0 - 1000 - 6 * 50);
+    expect(g.rewards.rep).toBe(r0 - 3);
+    const empty = g.list.find((o) => CATALOG[o.type].kind === 'house' && !o.build && o.residents === 0);
+    if (empty) { const m1 = g.money; g.demolish(empty.id); expect(g.money).toBe(m1); }
+  });
+
+  it('aholi noroziligi jarimasi har 3 davrda ko‘pi bilan bir marta', () => {
+    const { g } = newGame();
+    for (const o of g.list) if (CATALOG[o.type].kind === 'house') o.residents = CATALOG[o.type].capacity;
+    Object.defineProperty(g, 'happiness', { get: () => 10 });
+    const before = g.rewards.log.filter((l) => l.title.startsWith('Aholi noroziligi')).length;
+    for (let i = 0; i < 6; i++) g.tick();
+    const n = g.rewards.log.filter((l) => l.title.startsWith('Aholi noroziligi')).length - before;
+    expect(n).toBe(2);
+  });
+
+  it('eski saqlash (rewards yo‘q): bajarilganlar jimgina belgilanadi — birdan pul tushmaydi; saqlash/yuklash obro‘ni tiklaydi', () => {
+    const s = new MemStorage();
+    const g = Game.boot(s);
+    g.resetToNewCity(); // tayyor mahalla — yo‘llar bor
+    g.saveNow();
+    const d = JSON.parse(s.getItem(SAVE_KEY)!);
+    delete d.rewards;
+    s.setItem(SAVE_KEY, JSON.stringify(d));
+    const old = Game.boot(s);
+    expect(old.money).toBe(d.money);
+    old.rewards.rep = 73;
+    old.saveNow();
+    expect(Game.boot(s).rewards.rep).toBe(73);
+  });
+});
 
 describe('Yangi o‘yin', () => {
   it('saqlash yo‘q — bo‘sh shahar: qurilgan obyekt yo‘q, aholi 0, boshlang‘ich pul; tabiat va dinozavr bor; Dastyor yo‘l topshirig‘idan', () => {

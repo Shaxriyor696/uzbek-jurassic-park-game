@@ -625,3 +625,36 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
 /* Kompyuter: interfeys ekran o‘lchamiga mos (1920×1050 dan kichik ekranda brauzer zoomi kabi kichrayadi; ui-scale.ts) */
 :root { --uvw: calc(1vw / var(--ui-scale, 1)); }
 .ui-layer { zoom: var(--ui-scale, 1); }
+
+/* Obro‘, bonuslar va jarimalar */
+.rewards h3 { margin: 14px 0 6px; font-size: 16px; color: var(--navy); }
+.rewards h3 small { color: var(--muted); font-weight: 700; }
+.rep-box { padding: 12px 14px; border-radius: 14px; background: #f3f8ff; border: 1px solid #dbe8f6; }
+.rep-head { display: flex; align-items: baseline; gap: 4px; font-size: 18px; color: var(--navy); }
+.rep-head span { color: var(--muted); font-weight: 700; font-size: 14px; }
+.rep-bar { height: 10px; border-radius: 99px; background: #dde8f4; margin: 8px 0; overflow: hidden; }
+.rep-bar span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #ffb703, #ffd34d); transition: width 0.4s; }
+.rep-box small { color: var(--muted); font-weight: 600; line-height: 1.4; }
+.rewards .pos { color: var(--ok, #1f9d55); }
+.rewards .neg { color: #d64545; }
+.ach-list, .rew-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ach-list li { display: grid; grid-template-columns: 26px 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: #f7f9fc; border: 1px solid #e6edf6; }
+.ach-list.compact li { grid-template-columns: 1fr auto; }
+.ach-list li.done { background: #eefaf2; border-color: #c9ecd5; }
+.ach-mark { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #e2e9f2; color: #fff; font-weight: 900; }
+.ach-list li.done .ach-mark { background: var(--ok, #1f9d55); }
+.ach-text { display: flex; flex-direction: column; min-width: 0; }
+.ach-text b { font-size: 14px; color: var(--navy); }
+.ach-text small { font-size: 12px; color: var(--muted); }
+.ach-prize { text-align: right; font-weight: 800; font-size: 13px; color: #1f7a45; white-space: nowrap; }
+.ach-prize small { font-weight: 700; color: #b07800; }
+.ach-list.compact .ach-prize { white-space: normal; max-width: 210px; }
+.rew-log li { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 6px 10px; border-radius: 10px; background: #f7f9fc; }
+.rewards .muted { color: var(--muted); }
+
+/* pul: to‘liq summa; tor telefonda qisqa */
+.money-short { display: none; }
+@media (max-width: 420px) {
+  .money-full { display: none; }
+  .money-short { display: inline; }
+}
