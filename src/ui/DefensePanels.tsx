@@ -1,3 +1,4 @@
+import { fmt } from '../game/game';
 import { useState } from 'react';
 import { DEFENSE_STATUS_TEXT, gateCenter } from '../game/defense';
 import { DEFENSE_CONFIG, GATE_PHASE_NAME, gatePhase, isWallPiece } from '../game/defenseDefs';
@@ -44,6 +45,7 @@ export function DefensePanel() {
   const intruders = g.herd.dinos.filter((h) => h.mode !== 'leave' && g.inCityArea(h.x, h.z)).length;
   const stations = g.active.filter((o) => isSecurity(o.type) && g.statuses.get(o.id)?.active).length;
   const broken = g.damaged('defense');
+  const cityDmg = g.damaged('city');
   const steps = defenseSteps(g);
   const cur = steps.findIndex((s) => !s.done);
   const wallLen = d.wallBuilt;
@@ -70,6 +72,13 @@ export function DefensePanel() {
             <div className="why" data-testid="defense-damaged">
               <b>Shikastlangan himoya qismlari: {broken.list.length}</b>{broken.list.some((o) => (o.damage ?? 0) >= 1) ? ' (buzilganlari — ochiq joy)' : ''}
               <div style={{ marginTop: 6 }}><button className="btn-ghost small" disabled={g.money < broken.cost} onClick={() => g.repairAll('defense')} data-testid="repair-defense"><Icon.wrench size={14} /> Hammasini ta’mirlash (−{broken.cost})</button></div>
+            </div>
+          )}
+          {cityDmg.list.length > 0 && (
+            <div className="why" data-testid="city-damaged">
+              <b>Shikastlangan binolar: {cityDmg.list.length}</b>
+              {cityDmg.list.some((o) => (o.damage ?? 0) >= 1) ? ` (${cityDmg.list.filter((o) => (o.damage ?? 0) >= 1).length} tasi ishlamayapti)` : ' (hali ishlayapti, lekin keyingi hujumda buzilishi mumkin)'}
+              <div style={{ marginTop: 6 }}><button className="btn-ghost small" disabled={g.money < cityDmg.cost} onClick={() => g.repairAll('city')} data-testid="repair-city"><Icon.wrench size={14} /> Hammasini ta’mirlash (−{fmt(cityDmg.cost)})</button></div>
             </div>
           )}
           <div className="supply-row"><span className="supply-label">Ichkarida dinozavr</span><b className={inside ? 'bad' : 'ok'} data-testid="defense-inside">{inside ? `${inside} ta — ichkarida qolgan` : 'Yo‘q'}</b></div>

@@ -25,6 +25,7 @@ export class AudioDirector {
   private gates = new Map<string, { phase: string; motor: Voice | null }>();
   private steps = new Map<string, { x: number; z: number; acc: number }>();
   private nextGrowl = 0;
+  private lastHitSeq = 0;
   private lastStart = -9;
   private traffic: AmbientLoop;
   private city: AmbientLoop;
@@ -60,14 +61,28 @@ export class AudioDirector {
     }, 0);
   }
 
+  /** Zarba: og‘ir «gup» (past tondagi qadam) va qisqa sinish (qurilish zarbasidan bo‘lak) — zarba joyida */
+  private updateHits() {
+    for (const h of this.game.herd.hits) {
+      if (h.seq <= this.lastHitSeq) continue;
+      this.lastHitSeq = h.seq;
+      const at = { x: h.x, z: h.z };
+      this.engine.play('dinoStep', { at, rate: h.big ? 0.5 : 0.65, gain: h.big ? 1.7 : 1.3, priority: 2 });
+      this.engine.play('constructionHits', { at, offset: rand(0, 2.5), duration: 0.32, rate: h.wall ? 0.7 : 0.85, gain: 0.9, priority: 2 });
+    }
+  }
+
   /** Har kadr (sahna sikli): eshituvchi kamerada; dunyo ovozlari holatdan */
   update(cam: { targetX: number; targetZ: number; azimuth: number; distance: number }, half: number, dt: number) {
     const e = this.engine, g = this.game;
     e.listener = { x: cam.targetX + half, z: cam.targetZ + half, rx: Math.cos(cam.azimuth), rz: -Math.sin(cam.azimuth), dist: cam.distance };
     const active = !g.paused && !g.tabHidden;
     e.setWorldActive(active);
-    if (!e.ready) { g.traffic.events.length = 0; return; }
-    if (!active) { g.traffic.events.length = 0; this.stopMotorsIfPaused(); return; }
+    // dinozavr zarbalari: o‘tkazib yuborilgani (pauza/ovoz o‘chiq) keyin to‘planib chalinmaydi
+    const hits = g.herd.hits, lastSeq = hits.length ? hits[hits.length - 1].seq : this.lastHitSeq;
+    if (!e.ready) { g.traffic.events.length = 0; this.lastHitSeq = lastSeq; return; }
+    if (!active) { g.traffic.events.length = 0; this.lastHitSeq = lastSeq; this.stopMotorsIfPaused(); return; }
+    this.updateHits();
     this.updateConstruction();
     this.updateVehicles();
     this.updateGates();

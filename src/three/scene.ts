@@ -21,6 +21,8 @@ import { busStopModel, POLICE_LIGHTS, vehicleModel, type VehicleModel } from './
 import { DefenseView, defensePreviewModel, gateModel, gateSite, setGateOpen, wallProxy, wallRubble, wallSite, type DefenseSite, type GateModel } from './defenseModels';
 import { gateCenter, variantKey, wallVariant, type DefenseEval } from '../game/defense';
 import { isDefense, isWallPiece } from '../game/defenseDefs';
+import { DamageFx, damagedBuilding, hashId, wallDamage } from './damageFx';
+import { damageStage } from '../game/damage';
 
 export interface HoverHint {
   text: string;
@@ -61,6 +63,9 @@ export class GameScene {
   readonly factory = new ModelFactory();
   private objectsRoot = new THREE.Group();
   private overlayRoot = new THREE.Group();
+  /** Dinozavr zarari: tutun va zarba zarrachalari */
+  private damageFx = new DamageFx();
+  private lastHitSeq = 0;
   private nodes = new Map<string, Node>();
   /** Tayyor himoya devorlari (bo‘laklarda birlashtirilgan) */
   readonly defenseView = new DefenseView();
@@ -286,7 +291,7 @@ export class GameScene {
   private nodeKey(o: PlacedObject) {
     if (isWallPiece(o.type)) {
       if (!o.build && (o.damage ?? 0) >= 1) return 'defb';
-      if (!o.build) return 'defp';
+      if (!o.build) return 'defp' + (damageStage(o.damage) ? ':' + damageStage(o.damage) : '');
       const v = this.wallVariantOf(o);
       return 'defs:' + variantKey(v) + '|' + v.pillarEdges;
     }
@@ -296,7 +301,9 @@ export class GameScene {
     }
     if (o.type === 'avtobus_bekati') return 'stop:' + this.stopFacing(o.gridX, o.gridZ);
     if (o.type === 'road') return 'road:' + this.roadMask(o.gridX, o.gridZ) + (isWater(o.gridX, o.gridZ) ? ':kopr' : '');
-    return `${o.type}:${o.rotation}:${o.gridX}:${o.gridZ}${o.build ? ':qurilish' : ''}`;
+    // shikast bosqichi o‘zgarsa — model qayta quriladi (yoriqlar, qiyshayish, tutun, qulash)
+    const st = o.build ? 0 : damageStage(o.damage);
+    return `${o.type}:${o.rotation}:${o.gridX}:${o.gridZ}${o.build ? ':qurilish' : ''}${st ? ':dmg' + st : ''}`;
   }
 
   private roadMask(x: number, z: number) {
@@ -318,6 +325,7 @@ export class GameScene {
       const g = new THREE.Group();
       g.add(wallProxy());
       if ((o.damage ?? 0) >= 1) g.add(wallRubble()); // buzilgan — vayrona (ta’mirlash kerak)
+      else { const st = damageStage(o.damage); if (st) g.add(wallDamage(st as 1 | 2 | 3, hashId(o.id))); }
       g.position.copy(cellToWorld(o.gridX, o.gridZ));
       return g;
     }
@@ -378,6 +386,8 @@ export class GameScene {
     const obj = this.factory.create(o.type);
     obj.position.set(c.x - HALF, 0, c.z - HALF);
     obj.rotation.y = -o.rotation * (Math.PI / 2);
+    const st = damageStage(o.damage);
+    if (st) return damagedBuilding(obj, st, hashId(o.id), this.damageFx);
     return obj;
   }
 
@@ -436,6 +446,19 @@ export class GameScene {
       const o = this.game.objects.get(id);
       if (o?.build) site.update(o.build);
     }
+  }
+
+  /** Dinozavr zarbalari (chang, bo‘laklar) va shikastlangan binolar tutuni */
+  private updateDamageFx(dt: number) {
+    if (!this.damageFx.root.parent) this.scene.add(this.damageFx.root);
+    const hits = this.game.herd.hits;
+    for (const h of hits) {
+      if (h.seq <= this.lastHitSeq) continue;
+      this.lastHitSeq = h.seq;
+      this.damageFx.burst(h.x - HALF, h.wall ? 0.5 : 0.45, h.z - HALF, h.big);
+    }
+    // pauza / fon rejimida zarrachalar ham to‘xtaydi
+    this.damageFx.update(this.game.paused ? 0 : dt);
   }
 
   /** Darvoza qanotlari holati (o‘yin holatidan, har kadr); o‘tayotgan transport — traffic.ts */
@@ -1218,6 +1241,7 @@ export class GameScene {
     this.dinoWalker.update(this.cam.state.distance);
     this.herdView.update(dt, this.cam.camera.position);
     this.updateSites();
+    this.updateDamageFx(dt);
     for (const h of this.frameHooks) h(dt);
     this.updateVehicles();
     this.updateOverlays();

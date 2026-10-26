@@ -55,7 +55,15 @@ export interface HerdDino {
   raidOn?: string | null;
   /** Yirtqich yugurib boryapti (sayr/uzoq yo‘l) — maqsadga yetguncha */
   sprint?: boolean;
+  /** Hujum zarbasi sikli (0..1; 0,5 da zarba) — bino/devor oldida */
+  atk?: number;
+  /** Shu hujumda urilgan binolar soni va chegarasi (keyin chekinadi) */
+  raidHits?: number;
+  raidMax?: number;
 }
+
+/** Hujum zarbasi (ko‘rinish: chang va qoldiqlar; ovoz) */
+export interface HerdHit { seq: number; x: number; z: number; big: boolean; wall: boolean }
 
 /** Yirtqichlarning vaqti-vaqti bilan yugurishi: ehtimol (har yangi sayr/yo‘lda) va tezlik (yurish klipi tezligiga nisbatan) */
 export const SPRINT = { chance: 0.45, walkGaitRate: 2.1 };
@@ -64,12 +72,14 @@ export const SPRINT = { chance: 0.45, walkGaitRate: 2.1 };
 export const RAID_CONFIG = {
   /** false — hujum yo‘q (faqat eski avtomatik sinovlar uchun; o‘yinchi uchun doim true) */
   enabled: true,
-  /** Hujumlar orasidagi tanaffus (s) — tez-tez shahar chegarasiga keladi */
-  cool: [25, 60] as [number, number],
+  /** Bitta dinozavrning hujumlar orasidagi tanaffusi (s); hujum to‘lqinlarini Game (raidTickets) boshqaradi */
+  cool: [120, 240] as [number, number],
+  /** Bitta hujumda nechta binoga uriladi, keyin chekinadi (doim to‘xtovsiz emas) */
+  hits: [1, 2] as [number, number],
   /** Politsiya chiqarib yuborgandan keyin */
   coolAfterEvict: [70, 120] as [number, number],
-  /** Bino yonida bir urinish (s) */
-  stomp: [6, 9] as [number, number],
+  /** Bino yonida bir urinish (s) — qisman zarar */
+  stomp: [5, 8] as [number, number],
   /** Oddiy yurishda shahar ichidan o‘tish «qimmat» (yo‘l shahar chetidan aylanib o‘tadi) */
   cityCost: 3,
 };
@@ -423,6 +433,11 @@ export class Herd {
   private stuck = new Map<string, number>();
   private chaseCheck = 0;
   note: string | null = null;
+  /** Hujum to‘lqini: shuncha dinozavr shaharga borishi mumkin (Game shahar rivojiga qarab beradi) */
+  raidTickets = 0;
+  /** So‘nggi zarbalar (ko‘rinish va ovoz o‘zi kuzatadi; eskilari tashlanadi) */
+  hits: HerdHit[] = [];
+  private hitSeq = 0;
 
   /** Navigatsiya yangilanishi kerak (yangi bino/yo‘l, relyef) */
   invalidate() {
@@ -588,6 +603,8 @@ export class Herd {
     const p = d.partner ? this.dinos.find((q) => q.id === d.partner) : null;
     if (p && (d.mode === 'follow' || d.mode === 'chase' || d.mode === 'flee')) return { x: p.x, z: p.z };
     if (d.mode === 'watch' && !d.target) return d.face ?? nav.cityCenter;
+    // hujumda — bosh nishonga (bino yoki devor)
+    if ((d.mode === 'stomp' || (d.mode === 'probe' && !d.target)) && d.focus) return d.focus;
     if (d.speed < 0.05) {
       let best: HerdDino | null = null, bd = 9;
       for (const o of this.dinos) { if (o === d) continue; const dd = Math.hypot(o.x - d.x, o.z - d.z); if (dd < bd) { bd = dd; best = o; } }
@@ -700,7 +717,13 @@ export class Herd {
           // devor yonida: shahar tomonga qarab urinadi, keyin ketadi
           const b = (w.cityTargets ?? []).find((t) => t.id === d.raidOn);
           if (b) this.turnToward(d, dt, Math.atan2((b.z0 + b.z1) / 2 - d.z, (b.x0 + b.x1) / 2 - d.x), nav); else this.settle(d, dt);
-          if (d.timer <= 0) { d.raidOn = null; this.decide(d, nav, w); }
+          // eng yaqin devorga uriladi
+          const wall = (w.walls ?? []).reduce<{ x: number; z: number } | null>((best, c) => (!best || Math.hypot(c.x + 0.5 - d.x, c.z + 0.5 - d.z) < Math.hypot(best.x + 0.5 - d.x, best.z + 0.5 - d.z) ? c : best), null);
+          if (wall && Math.hypot(wall.x + 0.5 - d.x, wall.z + 0.5 - d.z) < herdRadius(def) + 2.5) {
+            d.focus = { x: wall.x + 0.5, z: wall.z + 0.5 };
+            this.attackCycle(d, dt, Math.atan2(wall.z + 0.5 - d.z, wall.x + 0.5 - d.x), { x: wall.x + 0.5, z: wall.z + 0.5 }, true);
+          } else d.atk = 0;
+          if (d.timer <= 0) { d.atk = 0; d.raidOn = null; this.retreat(d); }
           return;
         }
         if (!this.paths.has(d.id)) {
@@ -721,9 +744,19 @@ export class Herd {
         // bino yonida: unga qarab, joyida qadam tashlab turadi (zarar Game da hisoblanadi)
         const b = (w.cityTargets ?? []).find((t) => t.id === d.raidOn);
         if (!b) { this.startRaid(d, nav, w, true) || this.toRest(d, 0.5, 1); return; }
-        this.turnToward(d, dt, Math.atan2((b.z0 + b.z1 + 1) / 2 - d.z, (b.x0 + b.x1 + 1) / 2 - d.x), nav);
+        const bx = (b.x0 + b.x1 + 1) / 2, bz = (b.z0 + b.z1 + 1) / 2;
+        this.turnToward(d, dt, Math.atan2(bz - d.z, bx - d.x), nav);
         if (d.speed === 0) { d.anim = def.look?.length ? 'look' : 'idle'; d.phase[d.anim] += dt; }
-        if (d.timer <= 0 && !this.startRaid(d, nav, w, true)) this.toRest(d, 0.5, 1);
+        // binoga qaragan bo‘lsa — oldinga tashlanib uradi (zarba sikli); bosh binoga qaraydi
+        d.focus = { x: bx, z: bz };
+        this.attackCycle(d, dt, Math.atan2(bz - d.z, bx - d.x), { x: Math.max(b.x0, Math.min(d.x, b.x1 + 1)), z: Math.max(b.z0, Math.min(d.z, b.z1 + 1)) }, false);
+        if (d.timer <= 0) {
+          d.atk = 0;
+          d.raidHits = (d.raidHits ?? 0) + 1;
+          // 1–2 bino — keyin chekinadi (qisman zarar; keyingi hujum ancha keyin)
+          if (d.raidHits < (d.raidMax ?? 1) && this.startRaid(d, nav, w, true)) return;
+          this.retreat(d);
+        }
         return;
       }
       case 'rest': case 'idle': case 'look':
@@ -1113,7 +1146,7 @@ export class Herd {
     if (d.mode === 'flee' || d.mode === 'chase') { this.endChase(d); return; }
     if (d.mode === 'raid') { d.mode = 'stomp'; d.timer = between(d, RAID_CONFIG.stomp[0], RAID_CONFIG.stomp[1]); return; }
     if (d.mode === 'probe') { d.timer = between(d, 6, 10); return; }
-    if (d.mode === 'leave') { d.raidCool = between(d, RAID_CONFIG.coolAfterEvict[0], RAID_CONFIG.coolAfterEvict[1]); d.raidOn = null; this.toRest(d, 0.5, 1.2); return; }
+    if (d.mode === 'leave') { d.raidCool = Math.max(d.raidCool ?? 0, between(d, RAID_CONFIG.coolAfterEvict[0], RAID_CONFIG.coolAfterEvict[1])); d.raidOn = null; d.atk = 0; this.toRest(d, 0.5, 1.2); return; }
     // yetib keldi — biroz dam/atrofga qarash, keyin yangi qaror
     if (def.look?.length && rand(d) < 0.5) { d.mode = 'look'; d.lookIdx = Math.floor(rand(d) * def.look.length); d.phase.look = 0; d.timer = between(d, 2, 3.5); }
     else this.toRest(d, def.restTime[0] * 0.5, def.restTime[1] * 0.6);
@@ -1169,7 +1202,12 @@ export class Herd {
     const def = this.def(d);
     const b = def.behave;
     // tez-tez shahar chegarasiga keladi: ochiq joy bo‘lsa — ichkariga, yo‘q bo‘lsa — devor yonida urinadi
-    if (RAID_CONFIG.enabled && (d.raidCool ?? 1) <= 0 && w.cityTargets?.length && this.startRaid(d, nav, w, false)) return;
+    if (RAID_CONFIG.enabled && this.raidTickets > 0 && (d.raidCool ?? 1) <= 0 && w.cityTargets?.length && this.startRaid(d, nav, w, false)) {
+      this.raidTickets--;
+      d.raidHits = 0;
+      d.raidMax = Math.round(between(d, RAID_CONFIG.hits[0], RAID_CONFIG.hits[1]));
+      return;
+    }
     // kam dam oladi — ko‘proq yuradi
     // doim harakatda: dam olishdan keyin yana dam olinmaydi (ketma-ket to‘xtashlar uzun qotishga aylanmasin)
     const wasResting = d.mode === 'rest' || d.mode === 'idle';
@@ -1292,6 +1330,55 @@ export class Herd {
     if (near) return false;
     this.probe(d, nav, w);
     return true;
+  }
+
+  /**
+   * Zarba sikli: nishonga qaragan bo‘lsa (±0,5 rad) faza oshadi; 0,5 dan o‘tganda — zarba (hits ga yoziladi, ko‘rinish
+   * chang/qoldiq va ovoz chiqaradi). Katta dinozavr sekinroq va og‘irroq uradi. Qaramagan bo‘lsa — faza nolga.
+   */
+  private attackCycle(d: HerdDino, dt: number, to: number, at: { x: number; z: number }, wall: boolean) {
+    const def = this.def(d);
+    if (Math.abs(angDiff(d.heading, to)) > 0.5) { d.atk = 0; return; }
+    const period = def.length >= 3.5 ? 1.9 : def.length >= 2 ? 1.5 : 1.1;
+    const prev = d.atk ?? 0;
+    const next = prev + dt / period;
+    if (prev < 0.5 && next >= 0.5) {
+      this.hits.push({ seq: ++this.hitSeq, x: at.x, z: at.z, big: def.length >= 3.5, wall });
+      if (this.hits.length > 24) this.hits.splice(0, this.hits.length - 24);
+    }
+    d.atk = next % 1;
+  }
+
+  /**
+   * Hujum to‘lqini: shaharga eng yaqin n ta bo‘sh (quvish, hujum, chekinishda bo‘lmagan) dinozavr darhol yo‘lga chiqadi
+   * (ogohlantirish bilan hujum orasida uzoq tanaffus bo‘lmasin). Qolganlari o‘z tanaffusida.
+   */
+  callRaid(n: number, cx: number, cz: number) {
+    this.raidTickets = Math.min(3, this.raidTickets + n);
+    const busy: HerdMode[] = ['raid', 'stomp', 'probe', 'leave', 'chase', 'flee'];
+    const cands = this.dinos.filter((d) => this.def(d).mobile && !busy.includes(d.mode))
+      .sort((a, b) => Math.hypot(a.x - cx, a.z - cz) - Math.hypot(b.x - cx, b.z - cz)).slice(0, n);
+    for (const d of cands) {
+      d.raidCool = 0;
+      d.sprint = false;
+      this.paths.delete(d.id);
+      d.target = null;
+      d.partner = null;
+      d.mode = 'rest';
+      d.timer = Math.min(d.timer, 0.3);
+    }
+  }
+
+  /** Hujum tugadi: shahardan chiqib ketadi, keyingi hujumgacha uzoq tanaffus */
+  private retreat(d: HerdDino) {
+    d.atk = 0;
+    d.raidOn = null;
+    d.focus = null;
+    d.raidCool = between(d, RAID_CONFIG.cool[0], RAID_CONFIG.cool[1]);
+    d.mode = 'leave';
+    d.target = null;
+    d.timer = 0;
+    this.paths.delete(d.id);
   }
 
   /** Yo‘l yopiq: shahar chetidagi (binoga eng yaqin) joyga borib, kirishga urinadi, keyin ketadi */

@@ -407,6 +407,24 @@ export class HerdView {
       .premultiply(new THREE.Quaternion().setFromAxisAngle(latL, L.tiltF * pitchS));
   }
 
+  /**
+   * Hujum: zarba sikli (d.atk 0..1) — orqaga tortilish (0–0,35), tez oldinga tashlanish va bosh bilan urish (0,35–0,5,
+   * zarba 0,5 da), qisqa ushlab turish va asta qaytish. Tana oldinga siljiydi va tumshug‘i pastga egiladi.
+   */
+  private attackPose(it: Inst, d: HerdDino) {
+    const p = d.atk ?? 0;
+    if (!(p > 0) || (d.mode !== 'stomp' && d.mode !== 'probe')) return;
+    const curve = p < 0.35 ? -0.25 * (p / 0.35) : p < 0.5 ? -0.25 + 1.25 * ((p - 0.35) / 0.15) : p < 0.62 ? 1 : 1 - (p - 0.62) / 0.38;
+    const off = curve * it.def.length * 0.09;
+    it.root.position.x += Math.cos(d.heading) * off;
+    it.root.position.z += Math.sin(d.heading) * off;
+    // tumshuq pastga (zarba paytida), orqaga tortilganda biroz yuqoriga
+    const fwdL = new THREE.Vector3(Math.cos(it.def.forward), 0, Math.sin(it.def.forward));
+    const latL = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), fwdL).normalize();
+    const pitchS = fwdL.clone().applyAxisAngle(latL, 0.1).y > 0 ? 1 : -1;
+    it.lean.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(latL, -Math.max(-0.4, curve) * 0.16 * pitchS));
+  }
+
   /** Tinch poza (har kadr boshida — qo‘shimcha burilishlar to‘planib qolmasin) */
   private resetBody(it: Inst) {
     if (!it.body) return;
@@ -493,6 +511,7 @@ export class HerdView {
       // pauzada bosh va tana holati ham to‘xtaydi
       const ldt = this.game.paused ? 0 : dt;
       this.lifeStep(it, d, ldt);
+      this.attackPose(it, d);
       this.resetBody(it);
       if (it.jaw) this.jawPose(it, d);
       if (it.gait) {

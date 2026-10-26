@@ -14,7 +14,7 @@ import { cityAppeals, greenSummary, securityCoverage, sewageSummary, type Appeal
 import { CIVIC_CONFIG } from './civicDefs';
 import { bodyClear, patrolPath, setDinoLayout, spawnOnPath, DINO_SPECS, dinoValid, NATURE_RING, NATURE_ZONE, findZone, reservedCells, spawnDino, stepDino, type DinoProfile, type DinoState } from './dino';
 import { footprintCells } from './grid';
-import { Herd, isHerdDino } from './herd';
+import { Herd, isHerdDino, RAID_CONFIG } from './herd';
 import { ACHIEVEMENTS, clampRep, EVENTS, initialRewards, readRewards, repTaxRate, REWARDS_CONFIG, type RewardCtx, type RewardState } from './rewards';
 import { buildProgress, needsConstruction, newBuild } from './construction';
 import { computeStatuses as computeStatusesFor } from './utilities';
@@ -23,7 +23,7 @@ import { DEFENSE_CONFIG, gateNavOpen, gatePhase, isDefense, isGateState, newGate
 import { herdTerrainOk } from './herd';
 import { Traffic, type TrafficWorld } from './traffic';
 import { MIGRATION_CONFIG, settleSize } from './trafficDefs';
-import { DAMAGE_CONFIG, rectDist, repairCost } from './damage';
+import { DAMAGE_CONFIG, damageStage, RAID_WAVES, rectDist, repairCost } from './damage';
 import { isCityObject } from './defense';
 import { isSecurity } from './civic';
 import { CONSTRUCTION } from './construction';
@@ -237,6 +237,8 @@ export class Game {
     this.dinos = [];
     this.hints = { construction: false, arrival: false, gateAuto: true, onboarding: false };
     this.rewards = initialRewards();
+    this.raidClock = RAID_WAVES.firstDelay;
+    this.herd.raidTickets = 0;
     this.traffic.load(undefined, this.objects);
     this.selectedVehicle = null;
     this.defenseChecked = false;
@@ -274,6 +276,7 @@ export class Game {
     // eski saqlashlarda maydon yo‘q — tanishtiruv majburan ochilmaydi
     this.hints = { construction: d.hints?.construction === true, arrival: d.hints?.arrival === true, gateAuto: true, onboarding: d.hints?.onboarding !== false };
     this.rewards = readRewards(d.rewards);
+    this.raidClock = RAID_WAVES.firstDelay;
     this.defenseChecked = d.defense?.checked === true;
     this.selectedVehicle = null;
     this.defenseSeen = null;
@@ -347,9 +350,12 @@ export class Game {
    */
   private applyDinoDamage(dt: number) {
     let broke: PlacedObject[] | null = null;
+    let stageChanged = false;
     const rw = this.raidWorld();
     for (const d of this.herd.dinos) {
       if (d.mode !== 'stomp' && !(d.mode === 'probe' && !d.target)) continue;
+      // zarar faqat haqiqatan urayotganda (nishonga qarab, zarba sikli)
+      if (!((d.atk ?? 0) > 0)) continue;
       const r = herdRadius(HERD_BY_TYPE[d.type]);
       if (d.mode === 'stomp') {
         const t = rw.cityTargets.find((b) => b.id === d.raidOn);
@@ -357,6 +363,7 @@ export class Game {
         if (!o || rectDist(d.x, d.z, t!) > r + 2.5) continue;
         const was = o.damage ?? 0;
         o.damage = Math.min(1, was + dt / DAMAGE_CONFIG.buildingSeconds);
+        if (damageStage(was) !== damageStage(o.damage)) stageChanged = true;
         if (was < 1 && o.damage >= 1) (broke ??= []).push(o);
       } else {
         let best: PlacedObject | null = null, bd = r + 1.6;
@@ -367,9 +374,12 @@ export class Game {
         if (!best) continue;
         const was = best.damage ?? 0;
         best.damage = Math.min(1, was + dt / DAMAGE_CONFIG.wallSeconds);
+        if (damageStage(was) !== damageStage(best.damage)) stageChanged = true;
         if (was < 1 && best.damage >= 1) (broke ??= []).push(best);
       }
     }
+    // qisman shikast bosqichi o‘zgardi — sahna yoriq/tutun ko‘rinishini yangilaydi
+    if (stageChanged && !broke) { this.scheduleAutosave(); this.emit(true); }
     if (!broke) return;
     if (REWARDS_CONFIG.enabled) for (const _ of broke) { this.rewards.rep = clampRep(this.rewards.rep + EVENTS.dinoBroke.rep); this.rewards.log.unshift({ t: this.tickCount, title: EVENTS.dinoBroke.title, money: 0, rep: EVENTS.dinoBroke.rep }); this.rewards.log.length = Math.min(this.rewards.log.length, 12); }
     for (const o of broke) this.pushToast(isDefense(o.type) ? `Dinozavr ${CATALOG[o.type].name.toLowerCase()}ni buzdi — chegarada ochiq joy! Ta’mirlang.` : `Dinozavr «${CATALOG[o.type].name}»ni ishdan chiqardi — ta’mirlash kerak`, 'error');
@@ -1026,7 +1036,28 @@ export class Game {
     this.checkHealthTask();
     this.checkRule();
     this.checkRewards(report.net + this.rewards.lastRepTax);
+    this.raidSchedule();
     this.scheduleAutosave();
+  }
+
+  // ---------- dinozavr hujum to‘lqinlari ----------
+
+  /** Keyingi hujum to‘lqinigacha (s) — shahar rivojiga qarab; saqlanmaydi (yuklashdan keyin qaytadan hisoblanadi) */
+  raidClock = RAID_WAVES.firstDelay;
+
+  /** Har davr: shahar binolari soniga qarab vaqti-vaqti bilan 1–3 dinozavrga hujum ruxsati (hammasi birdan emas) */
+  private raidSchedule() {
+    if (!RAID_CONFIG.enabled) return;
+    const buildings = this.list.filter((o) => isCityObject(o) && !o.build && o.type !== 'road').length;
+    if (buildings < RAID_WAVES.minBuildings) { this.raidClock = Math.max(this.raidClock, 60); return; }
+    this.raidClock -= TICK_SECONDS;
+    if (this.raidClock > 0) return;
+    const party = RAID_WAVES.party(buildings);
+    const c = this.herdCity;
+    this.herd.callRaid(party, (c.x0 + c.x1) / 2, (c.z0 + c.z1) / 2);
+    this.pushToast(party > 1 ? `Diqqat: ${party} ta dinozavr shahar tomon kelmoqda — himoyani tekshiring!` : 'Diqqat: dinozavr shahar tomon kelmoqda — himoyani tekshiring!', 'error');
+    const jitter = ((this.tickCount * 7919) % 100) / 100 * RAID_WAVES.jitter;
+    this.raidClock = Math.max(RAID_WAVES.minGap, RAID_WAVES.baseGap - buildings * RAID_WAVES.perBuilding) + jitter;
   }
 
   // ---------- bonuslar va jarimalar ----------

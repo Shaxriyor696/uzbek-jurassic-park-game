@@ -31,7 +31,8 @@ function city() {
   return { g, z, houses };
 }
 
-const goRaid = (g: Game) => { for (const d of g.herd.dinos) { d.raidCool = 0; d.timer = 0; } };
+// hujum to‘lqini (o‘yinda Game shahar rivojiga qarab beradi) — sinovda darhol hammasiga
+const goRaid = (g: Game) => { g.herd.raidTickets = 99; for (const d of g.herd.dinos) { d.raidCool = 0; d.timer = 0; } };
 
 describe('Dinozavrlar: doim harakatda', () => {
   it('ko‘p vaqt yuradi; ikki dinozavr yuzma-yuz qotib turmaydi', () => {
@@ -97,23 +98,68 @@ describe('Dinozavrlar: qotib qolmaydi, yirtqichlar yuguradi', () => {
   }, 180000);
 });
 
+describe('Dinozavrlar: hujum to‘lqinlari (o‘yin rejimida)', () => {
+  it('kichik shaharga hujum yo‘q; shahar o‘sgach vaqti-vaqti bilan 1–3 dinozavr keladi, hammasi birdan emas; orada tanaffus', () => {
+    const g = Game.boot(null);
+    g.confirmNewCity();
+    const raiding = () => g.herd.dinos.filter((d) => d.mode === 'raid' || d.mode === 'stomp' || d.mode === 'probe').length;
+    // bino yo‘q — 5 daqiqa hujum yo‘q
+    let max0 = 0;
+    run(g, 300, () => { max0 = Math.max(max0, raiding()); }, 0.1);
+    expect(max0).toBe(0);
+    // shahar quriladi
+    const { g: c } = city();
+    let maxRaid = 0, starts = 0, prev = 0, quietAfter = 0, firstWaveBroken = false, sawPartial = false;
+    run(c, 900, () => {
+      const n = c.herd.dinos.filter((d) => d.mode === 'raid' || d.mode === 'stomp' || d.mode === 'probe').length;
+      maxRaid = Math.max(maxRaid, n);
+      if (n > 0 && prev === 0) starts++;
+      if (n === 0 && starts > 0) quietAfter += 0.1;
+      if (starts === 1 && c.list.some((o) => (o.damage ?? 0) >= 1)) firstWaveBroken = true;
+      if (c.list.some((o) => (o.damage ?? 0) > 0 && (o.damage ?? 0) < 1)) sawPartial = true;
+      prev = n;
+    }, 0.1);
+    expect(starts).toBeGreaterThanOrEqual(2); // vaqti-vaqti bilan, bir necha marta
+    expect(maxRaid).toBeLessThanOrEqual(3); // hammasi birdan emas
+    expect(maxRaid).toBeGreaterThan(0);
+    expect(quietAfter).toBeGreaterThan(120); // hujumlar orasida tanaffus
+    expect(sawPartial).toBe(true);
+    expect(firstWaveBroken).toBe(false); // birinchi hujumdayoq bino butunlay buzilmaydi
+  }, 180000);
+});
+
 describe('Dinozavrlar: shaharga hujum', () => {
   it('ochiq shaharga kiradi, binoni ishdan chiqaradi; politsiya mashinasi chiqarib yuboradi (limit bilan)', () => {
     const { g, z } = city();
     goRaid(g);
-    let entered = false, damaged: PlacedObject | null = null, warned = false;
-    run(g, 120, () => {
-      if (g.herd.dinos.some((d) => g.inCityArea(d.x, d.z))) entered = true;
-      if (g.toasts.some((t) => t.text.startsWith('Shaharga dinozavr kirdi'))) warned = true;
-      damaged ??= g.list.find((o) => (o.damage ?? 0) >= 1) ?? null;
+    let entered = false, damaged: PlacedObject | null = null, warned = false, partial = false, retreated = false, hits = 0;
+    // bir to‘lqin: qisman zarar (bino birdan buzilmaydi), keyin chekinadi; zarba hodisalari (ko‘rinish/ovoz uchun)
+    run(g, 60, () => {
+      if (g.list.some((o) => (o.damage ?? 0) > 0 && (o.damage ?? 0) < 1)) partial = true;
+      if (g.herd.dinos.some((d) => d.mode === 'leave' && (d.raidHits ?? 0) > 0)) retreated = true;
+      hits = Math.max(hits, g.herd.hits.length);
     });
+    expect(partial).toBe(true);
+    expect(retreated).toBe(true);
+    expect(hits).toBeGreaterThan(0);
+    // takroriy to‘lqinlar: zarar to‘planadi — oxiri bino ishdan chiqadi
+    for (let wave = 0; wave < 8 && !damaged; wave++) {
+      goRaid(g);
+      run(g, 60, () => {
+        if (g.herd.dinos.some((d) => g.inCityArea(d.x, d.z))) entered = true;
+        if (g.toasts.some((t) => t.text.startsWith('Shaharga dinozavr kirdi'))) warned = true;
+        damaged ??= g.list.find((o) => (o.damage ?? 0) >= 1) ?? null;
+      });
+    }
     expect(entered).toBe(true);
     expect(damaged).not.toBeNull();
-    expect(g.statuses.get(damaged!.id)!.power).toBe(false); // ishlamaydi
+    { const st0 = g.statuses.get(damaged!.id)!; expect(CATALOG[damaged!.type].utilityRadius > 0 ? st0.active : st0.power).toBe(false); } // ishlamaydi
     expect(warned).toBe(true);
     // shikastlangan stansiyalarni ta’mirlab, politsiya bo‘limi (yo‘l + elektr)
     g.repairAll('city');
-    const r = g.placeBuilding('politsiya', 21, z - 3, 0);
+    // joyda dinozavr turgan bo‘lishi mumkin — o‘tib ketguncha qayta urinadi
+    let r = g.placeBuilding('politsiya', 21, z - 3, 0);
+    for (let k = 0; k < 60 && !r.ok && r.reason.includes('dinozavr'); k++) { run(g, 1); r = g.placeBuilding('politsiya', 21, z - 3, 0); }
     expect(r.ok, r.reason).toBe(true);
     let maxPolice = 0, sawPolice = false;
     const evicted = new Map<string, number>();
@@ -141,7 +187,9 @@ describe('Dinozavrlar: shaharga hujum', () => {
     // stansiyalar ham ta’mirlangach — bino yana ishlaydi
     RAID_CONFIG.enabled = false;
     g.repairAll('city');
-    expect(g.statuses.get(damaged!.id)!.power).toBe(true);
+    // stansiya bo‘lsa — u ishlayapti (active); iste’molchi bo‘lsa — elektr oladi
+    const st = g.statuses.get(damaged!.id)!;
+    expect(CATALOG[damaged!.type].utilityRadius > 0 ? st.active : st.power).toBe(true);
     expect(CATALOG.politsiya).toBeDefined();
   }, 60000);
 
