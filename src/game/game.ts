@@ -58,7 +58,7 @@ export interface Toast {
 /** Qurilma darajasidagi belgi (shahar saqlashidan alohida) */
 export const ONBOARDING_SEEN_KEY = 'ujp.onboarding.seen';
 
-export type ModalKind = null | 'settings' | 'confirmNew' | 'help' | 'invalidSave' | 'credits' | 'onboarding' | 'rewards';
+export type ModalKind = null | 'settings' | 'confirmNew' | 'help' | 'invalidSave' | 'credits' | 'onboarding' | 'rewards' | 'exit' | 'goodbye';
 
 export const DEFAULT_CAMERA: CameraState = { targetX: -6.5, targetZ: -0.5, azimuth: 0.55, polar: 0.74, distance: 21 };
 export const AUTOSAVE_DEBOUNCE_MS = 500;
@@ -976,7 +976,7 @@ export class Game {
   /** Har kadrda chaqiriladi; dt soniyada. */
   update(dt: number) {
     // tanishtiruv ochiq — vaqt, xarajat, daromad, qurilish va ko‘chib kelish to‘xtaydi (paused holatiga tegilmaydi)
-    if (this.paused || this.tabHidden || this.modal === 'onboarding') return;
+    if (this.paused || this.tabHidden || this.modal === 'onboarding' || this.modal === 'exit' || this.modal === 'goodbye') return;
     const step = Math.min(Math.max(dt, 0), MAX_FRAME_DT);
     this.simTime += step;
     // dinozavr: o‘yin vaqti bilan (pauza/yashirin tabda to‘xtaydi, katta dt cheklangan)

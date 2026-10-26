@@ -17,6 +17,7 @@ interface TgWebApp {
   platform: string;
   isVersionAtLeast?(v: string): boolean;
   ready(): void;
+  close?(): void;
   expand(): void;
   requestFullscreen?(): void;
   disableVerticalSwipes?(): void;
@@ -201,6 +202,13 @@ export function bindBackButton(canGoBack: () => boolean, goBack: () => void): ()
   bb.onClick(click);
   const iv = setInterval(() => { const v = canGoBack(); if (v && !bb.isVisible) bb.show(); else if (!v && bb.isVisible) bb.hide(); }, 250);
   return () => { clearInterval(iv); bb.offClick(click); bb.hide(); };
+}
+
+/** Telegram ichida bo‘lsa — Mini App ni yopadi (true); oddiy brauzerda oynani skript yopa olmaydi (false) */
+export function closeTelegramApp(): boolean {
+  const app = tgApp();
+  if (!app?.close) return false;
+  try { app.close(); return true; } catch { return false; }
 }
 
 /** Tayyor — Telegram yuklanish ekranini yopadi */

@@ -3,6 +3,7 @@ import { audioEngine } from '../audio';
 import { assetUrl, useGame, useScene } from './useGame';
 import { Icon } from './icons';
 import { Onboarding } from './Onboarding';
+import { closeTelegramApp } from '../telegram/telegram';
 import { ACHIEVEMENTS, EVENTS, repTaxRate } from '../game/rewards';
 import { fmt } from '../game/game';
 
@@ -28,6 +29,8 @@ export function Modals() {
 
   if (g.modal === 'onboarding') return <Onboarding />;
 
+  if (g.modal === 'exit') return <ExitDialog />;
+  if (g.modal === 'goodbye') return <Goodbye />;
   if (g.modal === 'rewards') return <Modal title="Reyting, bonuslar va jarimalar" onClose={close} testid="rewards-modal"><RewardsView /></Modal>;
 
   if (g.modal === 'settings') {
@@ -73,6 +76,10 @@ export function Modals() {
             <button className="btn-ghost" onClick={() => { scene?.resetCamera(); close(); }} data-testid="reset-camera">Qaytarish</button>
           </div>
           <SoundSettings />
+          <div className="setting exit-setting">
+            <div><b>O‘yindan chiqish</b><small>Shahar saqlanadi — keyin shu joydan davom etasiz.</small></div>
+            <button className="btn-ghost" onClick={() => g.openModal('exit')} data-testid="settings-exit">Chiqish</button>
+          </div>
         </div>
       </Modal>
     );
@@ -277,6 +284,56 @@ function RewardsView() {
           ))}
         </ul>
       ) : <p className="muted">Hali hodisa yo‘q — birinchi yo‘lni quring.</p>}
+    </div>
+  );
+}
+
+/** Joriy shahar natijalari (chiqish oynasi va xayrlashuv ekrani) */
+function CityStats() {
+  const g = useGame();
+  const items: [string, string][] = [
+    ['Mablag‘', fmt(g.money) + ' so‘m'], ['Aholi', fmt(g.population)], ['Baxt', g.happiness + '%'],
+    ['Reyting', g.rewards.rep + ' / 100'], ['Bonuslar', `${g.rewards.done.length} / ${ACHIEVEMENTS.length}`], ['Davr', String(g.tickCount)],
+  ];
+  return <div className="exit-stats">{items.map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}</div>;
+}
+
+/**
+ * O‘yindan chiqish: o‘yin vaqti to‘xtaydi (Game.update), tanlov — o‘yinda qolish yoki saqlab chiqish.
+ * Telegram ichida Mini App yopiladi; brauzerda oynani skript yopa olmaydi — xayrlashuv ekrani (shahar saqlangan).
+ */
+function ExitDialog() {
+  const g = useGame();
+  const leave = () => {
+    g.saveNow(true);
+    if (closeTelegramApp()) return;
+    g.openModal('goodbye');
+  };
+  return (
+    <Modal title="O‘yindan chiqasizmi?" onClose={() => g.openModal(null)} testid="exit-modal">
+      <p className="exit-lead">Shahringiz avtomatik saqlanadi — keyingi safar shu joydan davom etasiz. O‘yin vaqti hozir to‘xtatildi.</p>
+      <CityStats />
+      <div className="exit-actions">
+        <button className="btn-primary" onClick={() => g.openModal(null)} data-testid="exit-stay" autoFocus>O‘yinda qolish</button>
+        <button className="btn-ghost" onClick={leave} data-testid="exit-leave">Saqlab chiqish</button>
+      </div>
+      <button className="exit-new" onClick={() => g.openModal('confirmNew')} data-testid="exit-new">Shaharni tugatib, yangisini boshlash</button>
+    </Modal>
+  );
+}
+
+/** Brauzerdagi xayrlashuv ekrani: natijalar, shahar saqlangan; qaytish mumkin */
+function Goodbye() {
+  const g = useGame();
+  return (
+    <div className="goodbye" data-ui data-testid="goodbye">
+      <div className="goodbye-card">
+        <img src={assetUrl('assets/brand/logo-384.png')} alt="Uzbek Jurassic Park" draggable={false} />
+        <h2>Rahmat, ko‘rishguncha!</h2>
+        <p>Shahringiz saqlandi. Endi bu oynani yopishingiz mumkin — qaytganingizda shu joydan davom etasiz.</p>
+        <CityStats />
+        <button className="btn-primary" onClick={() => g.openModal(null)} data-testid="goodbye-continue">O‘yinga qaytish</button>
+      </div>
     </div>
   );
 }

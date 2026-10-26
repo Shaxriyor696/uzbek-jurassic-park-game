@@ -63,6 +63,9 @@ export function TopBar() {
         <button className="round-btn panel-dark" onClick={() => g.openModal('settings')} aria-label="Sozlamalar" title="Sozlamalar" data-testid="settings">
           <Icon.gear />
         </button>
+        <button className="round-btn panel-dark exit-btn" onClick={() => g.openModal('exit')} aria-label="O‘yindan chiqish" title="O‘yindan chiqish" data-testid="exit">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 3h9a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-9v-2h9V5h-9zM9.6 7.4 11 8.8 8.8 11H16v2H8.8l2.2 2.2-1.4 1.4L5 12z" /></svg>
+        </button>
       </div>
       {g.paused && <div className="pause-badge" data-ui>Pauza — iqtisodiyot va aholi to‘xtatilgan</div>}
       {g.autosaveBlocked && <div className="warn-badge" data-ui>{g.autosaveBlockReason ?? 'Avtosaqlash o‘chiq'}</div>}
