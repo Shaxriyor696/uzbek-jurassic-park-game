@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Uzbek Jurassic Park — O'zbekiston muhitidagi 3D shahar qurish va boshqarish o'yini (brauzerda)",
+  "description": "O'zbekiston muhitidagi 3D shahar qurish va boshqarish o'yini (brauzerda)",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

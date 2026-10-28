@@ -1,5 +1,5 @@
 /**
- * Uzbek Jurassic Park — server (Cloudflare Worker, bepul tarif).
+ * O‘yin serveri (Cloudflare Worker, bepul tarif).
  *  POST /api/telegram/webhook — Telegram bot (webhook; polling bilan bir vaqtda ishlatilmaydi)
  *  GET  /api/save, PUT /api/save — foydalanuvchi shahri (D1). Foydalanuvchi faqat tekshirilgan initData dan.
  *  GET  /api/health — holat (maxfiy ma'lumotsiz)

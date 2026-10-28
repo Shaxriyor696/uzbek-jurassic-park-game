@@ -1,6 +1,6 @@
-# Uzbek Jurassic Park — 3D shahar qurish o‘yini (avvalgi nomi: BoyOta)
+# 3D shahar qurish o‘yini (avvalgi nomi: BoyOta)
 
-O‘yin nomi «Uzbek Jurassic Park». Saqlash kalitlari (`boyota.save.v1` va boshqalar) texnik identifikator sifatida o‘zgarmagan — eski shaharlar ochiladi. Logo: `public/assets/brand/uzbek-jurassic-park-logo-original.png` (asl fayl), kichraytirilgan nusxalar va ikonkalar o‘sha papkada.
+Saqlash kalitlari (`boyota.save.v1` va boshqalar) texnik identifikator sifatida o‘zgarmagan — eski shaharlar ochiladi.
 
 Brauzerda ishlaydigan bir o‘yinchili shahar qurish o‘yini. React + TypeScript + Three.js + Vite.
 Barcha 3D modellar hajmli geometriya (kod orqali, PNG namunalaridan uslub olingan); PNGlar faqat UI kartalari va Dastyor uchun ishlatiladi.

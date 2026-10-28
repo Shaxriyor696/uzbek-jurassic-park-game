@@ -101,7 +101,7 @@ export function Modals() {
     return (
       <Modal title="Boshqaruv" onClose={() => g.openModal('settings')} testid="help-modal">
         <div className="help-intro" data-testid="help-intro">
-          <p><b>Uzbek Jurassic Park</b> — O‘zbekiston muhitidagi shahar qurish va boshqarish o‘yini. Uylar, yo‘llar, biznes va xizmat binolarini quring, budjetni boshqaring, aholi ehtiyojlarini (yo‘l, elektr, suv, ta’lim, tibbiyot) qondiring va shaharni atrofdagi dinozavrlardan himoya qiling. Yo‘lda Dastyor yordam beradi.</p>
+          <p>O‘zbekiston muhitidagi shahar qurish va boshqarish o‘yini. Uylar, yo‘llar, biznes va xizmat binolarini quring, budjetni boshqaring, aholi ehtiyojlarini (yo‘l, elektr, suv, ta’lim, tibbiyot) qondiring va shaharni atrofdagi dinozavrlardan himoya qiling. Yo‘lda Dastyor yordam beradi.</p>
           <button className="btn-ghost" onClick={() => g.startOnboarding(true)} data-testid="help-onboarding">Dastyor tanishtiruvi</button>
         </div>
         <table className="help-table">
@@ -170,12 +170,12 @@ export function Modals() {
             </tbody>
           </table>
           <p className="credits-note">
-            Yangi modellar muallif ma’lumoti ham GLB ichidagi <code>asset.extras</code> dan o‘qiladi. Uzbek Jurassic Park da faqat masshtab, joy va
+            Yangi modellar muallif ma’lumoti ham GLB ichidagi <code>asset.extras</code> dan o‘qiladi. O‘yinda faqat masshtab, joy va
             animatsiya vaqti boshqariladi; geometriya va teksturalar o‘zgartirilmagan. Xulq (sayr, ergashish, quvish) — o‘yin sozlamasi.
           </p>
           <p className="credits-note">
-            Model Uzbek Jurassic Park uchun yaratilmagan; muallif ma’lumotlari GLB ichidagi <code>asset.extras</code> dan olingan.
-            Uzbek Jurassic Park da o‘zgartirildi: masshtab va joylashuv; klipning oldinga yurish qismi (0,62–4,96 s) takrorlanib, qadamlar
+            Model bu o‘yin uchun yaratilmagan; muallif ma’lumotlari GLB ichidagi <code>asset.extras</code> dan olingan.
+            O‘yinda o‘zgartirildi: masshtab va joylashuv; klipning oldinga yurish qismi (0,62–4,96 s) takrorlanib, qadamlar
             orasida morph og‘irliklari blend qilinadi, dam pozasi 4,96–5,75 s. Geometriya va teksturalar o‘zgartirilmagan.
           </p>
         </div>
@@ -188,7 +188,7 @@ export function Modals() {
       const blob = new Blob([g.invalidSaveInfo?.raw ?? ''], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'uzbek-jurassic-park-buzilgan-saqlash.json';
+      a.download = 'shahar-buzilgan-saqlash.json';
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     };

@@ -5,11 +5,11 @@
  */
 export const TEXTS = {
   start:
-    '🦖 Uzbek Jurassic Park’ga xush kelibsiz!\n' +
+    '🦖 Xush kelibsiz!\n' +
     'O‘z shahringizni quring, rivojlantiring va dinozavrlardan himoya qiling.\n' +
     'Boshlash uchun quyidagi tugmani bosing.',
   help:
-    '🦖 Uzbek Jurassic Park — yordam\n\n' +
+    '🦖 Yordam\n\n' +
     '🎮 O‘yinni ochish: /start dagi «O‘yinni ochish» tugmasi yoki pastdagi «O‘ynash» menyusi.\n\n' +
     '📷 Kamera: bir barmoq bilan surish — xaritada yurish; ikki barmoq — yaqinlashtirish/uzoqlashtirish va aylantirish. ' +
     'Kompyuterda: sichqoncha bilan surish, g‘ildirak — zoom, o‘ng tugma — aylantirish.\n\n' +

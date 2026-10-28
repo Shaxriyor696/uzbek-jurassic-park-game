@@ -20,7 +20,7 @@ const me = await call('getMe');
 if (!me.ok) process.exit(1);
 say(`Bot: @${me.result.username} (${me.result.first_name})`);
 await call('setMyCommands', { commands: COMMANDS });
-await call('setMyDescription', { description: 'Uzbek Jurassic Park — O‘zbekiston muhitidagi 3D shahar qurish o‘yini: uylar, yo‘llar, biznes va xizmat binolarini quring, budjetni boshqaring va shaharni dinozavrlardan himoya qiling. Boshlash: /start' });
+await call('setMyDescription', { description: 'O‘zbekiston muhitidagi 3D shahar qurish o‘yini: uylar, yo‘llar, biznes va xizmat binolarini quring, budjetni boshqaring va shaharni dinozavrlardan himoya qiling. Boshlash: /start' });
 await call('setMyShortDescription', { short_description: 'Shahar quring va uni dinozavrlardan himoya qiling 🦖' });
 if (isHttpsUrl(env.WEB_APP_URL)) {
   await call('setChatMenuButton', { menu_button: { type: 'web_app', text: TEXTS.menu, web_app: { url: env.WEB_APP_URL } } });

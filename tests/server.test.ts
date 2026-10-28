@@ -56,7 +56,7 @@ describe('Bot javoblari', () => {
   it('/start — matn va Web App tugmasi (faqat https); /help; boshqa xabar', () => {
     const [s] = replyFor({ message: { chat: { id: 7 }, text: '/start' } }, 'https://example.github.io/ujp/');
     expect(s.payload.text).toBe(TEXTS.start);
-    expect(s.payload.text).toContain('🦖 Uzbek Jurassic Park’ga xush kelibsiz!');
+    expect(s.payload.text).toContain('🦖 Xush kelibsiz!');
     expect(s.payload.reply_markup.inline_keyboard[0][0]).toEqual({ text: '🎮 O‘yinni ochish', web_app: { url: 'https://example.github.io/ujp/' } });
     const [noUrl] = replyFor({ message: { chat: { id: 7 }, text: '/start' } }, '');
     expect(noUrl.payload.reply_markup).toBeUndefined();
