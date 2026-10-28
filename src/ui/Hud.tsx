@@ -6,9 +6,9 @@ import { StepDots } from './TutorialVisual';
 import { EduTaskBlock, HealthTaskBlock } from './Panels';
 import { RuleBox } from './CivicPanels';
 import { Icon } from './icons';
-import { assetUrl, useGame, useScene } from './useGame';
+import { useGame, useScene } from './useGame';
 
-/** Yuqori panel: logo, mablag‘, aholi, baxt, hisob davri, pauza, sozlamalar. */
+/** Yuqori panel: mablag‘, aholi, baxt, hisob davri, pauza, sozlamalar. */
 export function TopBar() {
   const g = useGame();
   const [, force] = useState(0);
@@ -21,9 +21,6 @@ export function TopBar() {
   const net = g.budget.net;
   return (
     <>
-      <div className="logo" data-ui>
-        <img className="logo-img" src={assetUrl('assets/brand/logo-384.png')} alt="Uzbek Jurassic Park" draggable={false} />
-      </div>
       <div className="topbar" data-ui>
         <button className={'chip chip-btn panel-dark' + (g.money < 0 ? ' debt' : '') + (g.budgetOpen ? ' open' : '')} title={`Mablag‘: ${fmt(g.money)} — shahar budjetini ochish`}
           aria-label="Shahar budjeti" aria-expanded={g.budgetOpen} onClick={() => g.toggleBudget()} data-testid="money">

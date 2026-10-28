@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { audioEngine } from '../audio';
-import { assetUrl, useGame, useScene } from './useGame';
+import { useGame, useScene } from './useGame';
 import { Icon } from './icons';
 import { Onboarding } from './Onboarding';
 import { closeTelegramApp } from '../telegram/telegram';
@@ -101,7 +101,6 @@ export function Modals() {
     return (
       <Modal title="Boshqaruv" onClose={() => g.openModal('settings')} testid="help-modal">
         <div className="help-intro" data-testid="help-intro">
-          <img src={assetUrl('assets/brand/logo-384.png')} alt="Uzbek Jurassic Park" draggable={false} />
           <p><b>Uzbek Jurassic Park</b> — O‘zbekiston muhitidagi shahar qurish va boshqarish o‘yini. Uylar, yo‘llar, biznes va xizmat binolarini quring, budjetni boshqaring, aholi ehtiyojlarini (yo‘l, elektr, suv, ta’lim, tibbiyot) qondiring va shaharni atrofdagi dinozavrlardan himoya qiling. Yo‘lda Dastyor yordam beradi.</p>
           <button className="btn-ghost" onClick={() => g.startOnboarding(true)} data-testid="help-onboarding">Dastyor tanishtiruvi</button>
         </div>
@@ -328,7 +327,6 @@ function Goodbye() {
   return (
     <div className="goodbye" data-ui data-testid="goodbye">
       <div className="goodbye-card">
-        <img src={assetUrl('assets/brand/logo-384.png')} alt="Uzbek Jurassic Park" draggable={false} />
         <h2>Rahmat, ko‘rishguncha!</h2>
         <p>Shahringiz saqlandi. Endi bu oynani yopishingiz mumkin — qaytganingizda shu joydan davom etasiz.</p>
         <CityStats />

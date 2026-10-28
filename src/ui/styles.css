@@ -46,7 +46,6 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   display: flex; align-items: center;
 }
 /* Logo — PNG o‘zi (shaffof fon), nisbati saqlanadi; fon qo‘shilmaydi */
-.logo-img { display: block; height: 64px; width: auto; filter: drop-shadow(0 3px 6px rgba(15, 42, 77, 0.35)); user-select: none; }
 
 .topbar {
   position: absolute; top: 14px; right: 16px; left: 220px; display: flex; gap: 10px; align-items: center; justify-content: flex-end;
@@ -381,7 +380,6 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   .round-btn { width: 42px; height: 42px; }
 }
 @media (max-width: 860px) {
-  .logo-img { height: 48px; }
   .topbar { left: 84px; }
   .left-col { width: 270px; }
   .right-col { width: 270px; }
@@ -447,6 +445,8 @@ button:focus-visible { outline: 3px solid rgba(34, 211, 238, 0.7); outline-offse
 .ui-layer { padding: var(--safe-top, env(safe-area-inset-top, 0px)) var(--safe-right, env(safe-area-inset-right, 0px)) var(--safe-bottom, env(safe-area-inset-bottom, 0px)) var(--safe-left, env(safe-area-inset-left, 0px)); box-sizing: border-box; }
 .ui-layer > .logo, .ui-layer > .topbar { margin-top: var(--safe-top, 0px); }
 .ui-layer .left-col, .ui-layer .right-col { top: calc(76px + var(--safe-top, 0px)); bottom: calc(100px + var(--safe-bottom, 0px)); }
+/* logo yo‘q — chap ustun yuqori burchakdan boshlanadi (o‘ng ustun yuqori qator ostida) */
+.ui-layer .left-col { top: calc(14px + var(--safe-top, 0px)); }
 .ui-layer .build-menu { bottom: calc(14px + var(--safe-bottom, 0px)); }
 html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
 .scene-canvas { touch-action: none; }
@@ -508,7 +508,7 @@ html.in-telegram, html.in-telegram body { overscroll-behavior: none; }
   .ui-layer .left-col { top: calc(52px + var(--safe-top, 0px)); width: min(300px, calc(45 * var(--uvw))); }
   .left-col .panel, .left-col .task-panel { width: 100%; }
 }
-@media (max-width: 370px) {
+@media (max-width: 400px) {
   .chip { padding: 0 8px 0 4px; gap: 4px; }
   .chip > svg { width: 20px; height: 20px; }
   .chip-value { font-size: 14px; }
