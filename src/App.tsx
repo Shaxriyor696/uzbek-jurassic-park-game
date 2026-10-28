@@ -117,6 +117,7 @@ export function App() {
 function FatalScreen({ message }: { message: string }) {
   return (
     <div className="fatal" role="alert">
+      <img src={import.meta.env.BASE_URL + 'assets/brand/logo-384.png'} alt="Dinoshahar" />
       <h2>O‘yin ochilmadi</h2>
       <p>Qurilmangiz 3D grafikani (WebGL) ishga tushira olmadi yoki xotira yetmadi. Shahringiz saqlangan — qayta urinib ko‘ring.</p>
       <small>{message}</small>

@@ -6,7 +6,7 @@ import { StepDots } from './TutorialVisual';
 import { EduTaskBlock, HealthTaskBlock } from './Panels';
 import { RuleBox } from './CivicPanels';
 import { Icon } from './icons';
-import { useGame, useScene } from './useGame';
+import { assetUrl, useGame, useScene } from './useGame';
 
 /** Yuqori panel: mablag‘, aholi, baxt, hisob davri, pauza, sozlamalar. */
 export function TopBar() {
@@ -21,6 +21,9 @@ export function TopBar() {
   const net = g.budget.net;
   return (
     <>
+      <div className="logo" data-ui>
+        <img className="logo-img" src={assetUrl('assets/brand/logo-384.png')} alt="Dinoshahar" draggable={false} />
+      </div>
       <div className="topbar" data-ui>
         <button className={'chip chip-btn panel-dark' + (g.money < 0 ? ' debt' : '') + (g.budgetOpen ? ' open' : '')} title={`Mablag‘: ${fmt(g.money)} — shahar budjetini ochish`}
           aria-label="Shahar budjeti" aria-expanded={g.budgetOpen} onClick={() => g.toggleBudget()} data-testid="money">

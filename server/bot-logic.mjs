@@ -5,11 +5,11 @@
  */
 export const TEXTS = {
   start:
-    '🦖 Xush kelibsiz!\n' +
+    '🦖 Dinoshahar’ga xush kelibsiz!\n' +
     'O‘z shahringizni quring, rivojlantiring va dinozavrlardan himoya qiling.\n' +
     'Boshlash uchun quyidagi tugmani bosing.',
   help:
-    '🦖 Yordam\n\n' +
+    '🦖 Dinoshahar — yordam\n\n' +
     '🎮 O‘yinni ochish: /start dagi «O‘yinni ochish» tugmasi yoki pastdagi «O‘ynash» menyusi.\n\n' +
     '📷 Kamera: bir barmoq bilan surish — xaritada yurish; ikki barmoq — yaqinlashtirish/uzoqlashtirish va aylantirish. ' +
     'Kompyuterda: sichqoncha bilan surish, g‘ildirak — zoom, o‘ng tugma — aylantirish.\n\n' +
